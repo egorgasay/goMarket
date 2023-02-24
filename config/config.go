@@ -30,10 +30,11 @@ func init() {
 }
 
 type Config struct {
-	Host     string
-	BaseURL  string
-	Key      []byte
-	DBConfig *repository.Config
+	Host                 string
+	BaseURL              string
+	Key                  []byte
+	DBConfig             *repository.Config
+	AccrualSystemAddress string
 }
 
 func New() *Config {
@@ -90,5 +91,6 @@ func New() *Config {
 			VDB:            ddb,
 			Name:           "vdb",
 		},
+		AccrualSystemAddress: *f.asa,
 	}
 }
