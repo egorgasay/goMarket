@@ -1,4 +1,4 @@
-package postgres
+package storage
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-var TestDB Postgres
+var TestDB Storage
 
 func TestMain(m *testing.M) {
 	// Write code here to run before tests
@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	TestDB = New(vdb.DB, "file://migrations").(Postgres)
+	TestDB = New(vdb.DB, "file://migrations").(Storage)
 	// Run tests
 	exitVal := m.Run()
 

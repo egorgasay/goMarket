@@ -8,7 +8,6 @@ import (
 	"github.com/egorgasay/dockerdb"
 	_ "github.com/mattn/go-sqlite3"
 	"gomarket/internal/storage"
-	"gomarket/internal/storage/postgres"
 )
 
 type Config struct {
@@ -30,7 +29,7 @@ func New(cfg *Config) (storage.IStorage, error) {
 			return nil, err
 		}
 
-		return postgres.New(db, "file://internal/storage/postgres/migrations"), nil
+		return storage.New(db, "file://internal/storage/migrations"), nil
 	}
 
 	cfg.DataSourcePath = "dockerDBs"
@@ -75,7 +74,7 @@ func New(cfg *Config) (storage.IStorage, error) {
 	}
 	sqlitedb.Close()
 
-	return postgres.New(cfg.VDB.DB, "file://internal/storage/postgres/migrations"), nil
+	return storage.New(cfg.VDB.DB, "file://internal/storage/migrations"), nil
 }
 
 func upSqlite(cfg *Config, schema string) (*sql.DB, error) {

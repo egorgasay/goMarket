@@ -7,7 +7,7 @@ import (
 	"gomarket/config"
 	"gomarket/internal/cookies"
 	"gomarket/internal/schema"
-	"gomarket/internal/storage/service"
+	"gomarket/internal/storage"
 	"gomarket/internal/usecase"
 	"io"
 	"net/http"
@@ -49,7 +49,7 @@ func (h Handler) PostRegister() http.HandlerFunc {
 		}
 
 		err = h.logic.CreateUser(cred.Login, cred.Password)
-		if err == service.ErrUsernameConflict {
+		if err == storage.ErrUsernameConflict {
 			w.WriteHeader(http.StatusConflict)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
@@ -74,7 +74,7 @@ func (h Handler) PostLogin() http.HandlerFunc {
 		}
 
 		err = h.logic.CheckPassword(cred.Login, cred.Password)
-		if err == service.ErrWrongPassword {
+		if err == storage.ErrWrongPassword {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
@@ -106,19 +106,19 @@ func (h Handler) PostOrders() http.HandlerFunc {
 		}
 
 		err = h.logic.CheckID(h.conf.AccrualSystemAddress, cookie, string(id))
-		if errors.Is(err, service.ErrCreatedByThisUser) {
+		if errors.Is(err, storage.ErrCreatedByThisUser) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprintf(`{"msg": "%s"}`, err)))
 			return
 		}
 
-		if errors.Is(err, service.ErrCreatedByAnotherUser) {
+		if errors.Is(err, storage.ErrCreatedByAnotherUser) {
 			w.WriteHeader(http.StatusConflict)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
 		}
 
-		if errors.Is(err, service.ErrBadID) {
+		if errors.Is(err, storage.ErrBadID) {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
@@ -145,7 +145,7 @@ func (h Handler) GetUserOrders() http.HandlerFunc {
 		}
 
 		orders, err := h.logic.GetOrders(cookie)
-		if errors.Is(err, service.ErrNoResult) {
+		if errors.Is(err, storage.ErrNoResult) {
 			w.WriteHeader(http.StatusNoContent)
 			w.Write([]byte(fmt.Sprintf(`{"msg": "%s"}`, err)))
 			return

@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"gomarket/internal/schema"
-	"gomarket/internal/storage/service"
+	"gomarket/internal/storage"
 	"io"
 	"log"
 	"net/http"
@@ -23,7 +23,7 @@ func (uc UseCase) CheckPassword(login, passwd string) error {
 
 func (uc UseCase) CheckID(host, cookie, id string) error {
 	if !allCharsIsDigits(id) {
-		return service.ErrBadID
+		return storage.ErrBadID
 	}
 
 	username, err := getUsernameFromCookie(cookie)
@@ -33,11 +33,11 @@ func (uc UseCase) CheckID(host, cookie, id string) error {
 
 	ID, err := strconv.Atoi(id)
 	if err != nil {
-		return service.ErrBadID
+		return storage.ErrBadID
 	}
 
 	if !Valid(ID) {
-		return service.ErrBadID
+		return storage.ErrBadID
 	}
 	err = uc.storage.CheckID(username, id)
 	if err != nil {
@@ -64,7 +64,7 @@ func (uc UseCase) updateStatus(host, id string) {
 				log.Println("No content")
 				continue
 			case http.StatusInternalServerError:
-				log.Println("Calc service error")
+				log.Println("Calc storage error")
 				continue
 			case http.StatusTooManyRequests:
 				log.Println("Too many request")
@@ -137,7 +137,7 @@ func checksum(number int) int {
 func getUsernameFromCookie(cookie string) (string, error) {
 	split := strings.Split(cookie, "-")
 	if len(split) != 2 {
-		return "", service.ErrBadCookie
+		return "", storage.ErrBadCookie
 	}
 
 	username := split[1]

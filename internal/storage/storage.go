@@ -1,17 +1,176 @@
 package storage
 
 import (
+	"database/sql"
+	"errors"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgerrcode"
+	"github.com/lib/pq"
 	"gomarket/internal/schema"
-	"gomarket/internal/storage/service"
+	"log"
 )
 
-type IStorage interface {
-	CreateUser(login, passwd string) error
-	CheckPassword(login, passwd string) error
-	CheckID(username, id string) error
-	GetOrders(username string) (service.Orders, error)
-	GetBalance(username string) (schema.Balance, error)
-	UpdateOrder(id, status string, accrual float64) error
+const createUser = `INSERT INTO "Users" VALUES ($1, $2, 0.0, 0.0)`
+const validatePassword = `
+SELECT 1 FROM "Users" WHERE "Name" = $1 AND "Password" = $2
+`
+const addOrder = `
+INSERT INTO "Orders" VALUES ($1, now()::timestamp, $2, 'NEW', 0)
+`
+const getOwnerByID = `
+SELECT "Owner" FROM "Orders" WHERE "UID" = $1
+`
+const getOrders = `
+SELECT "UID", "Status", "Accrual", "Date" FROM "Orders" WHERE "Owner" = $1
+`
+const getBalance = `
+SELECT "Balance", "Withdrawn" FROM "Users" WHERE "Name" = $1
+`
+const changeOrer = `
+UPDATE "Orders"
+SET "Accrual" = $1,
+    "Status" = $2
+WHERE "UID" = $3
+`
+
+func (s Storage) CreateUser(login, passwd string) error {
+	prepare, err := s.DB.Prepare(createUser)
+	if err != nil {
+		return err
+	}
+
+	_, err = prepare.Exec(login, passwd)
+	if err == nil {
+		return nil
+	}
+
+	e, ok := err.(*pq.Error)
+	if !ok {
+		log.Println("shouldn't be this ", err)
+		return err
+	}
+
+	if e.Code == pgerrcode.UniqueViolation {
+		return ErrUsernameConflict
+	}
+
+	return err
 }
 
-type Type string
+func (s Storage) CheckPassword(login, passwd string) error {
+	prepare, err := s.DB.Prepare(validatePassword)
+	if err != nil {
+		return err
+	}
+
+	row := prepare.QueryRow(login, passwd)
+	if row.Err() != nil {
+		return err
+	}
+
+	var isValidPassword bool
+	err = row.Scan(&isValidPassword)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrWrongPassword
+	}
+
+	return err
+}
+
+func (s Storage) CheckID(username, id string) error {
+	prepare, err := s.DB.Prepare(addOrder)
+	if err != nil {
+		return err
+	}
+
+	_, err = prepare.Exec(username, id)
+	if err == nil {
+		return nil
+	}
+
+	e, ok := err.(*pq.Error)
+	if !ok {
+		log.Println("shouldn't be this ", err)
+		return err
+	}
+
+	if e.Code == pgerrcode.UniqueViolation {
+		prepareSecondQuery, err := s.DB.Prepare(getOwnerByID)
+		if err != nil {
+			return err
+		}
+
+		var owner string
+		row := prepareSecondQuery.QueryRow(id)
+
+		err = row.Scan(&owner)
+		if err != nil {
+			return err
+		}
+
+		if owner != username {
+			return ErrCreatedByAnotherUser
+		}
+
+		return ErrCreatedByThisUser
+	}
+
+	return err
+}
+
+func (s Storage) GetOrders(username string) (Orders, error) {
+	prepare, err := s.DB.Prepare(getOrders)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := prepare.Query(username)
+	if err != nil {
+		return nil, err
+	}
+
+	orders := make(Orders, 0)
+
+	for rows.Next() {
+		order := schema.UserOrder{}
+		err = rows.Scan(&order.Number, &order.Status, &order.Accrual, &order.UploadedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, &order)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(orders) == 0 {
+		return nil, ErrNoResult
+	}
+
+	return orders, nil
+}
+
+func (s Storage) GetBalance(username string) (schema.Balance, error) {
+	prepare, err := s.DB.Prepare(getBalance)
+	if err != nil {
+		return schema.Balance{}, err
+	}
+
+	row := prepare.QueryRow(username)
+
+	var balance schema.Balance
+	return balance, row.Scan(&balance.Current, &balance.Withdrawn)
+}
+
+func (s Storage) UpdateOrder(id, status string, accrual float64) error {
+	prepare, err := s.DB.Prepare(changeOrer)
+	if err != nil {
+		return err
+	}
+
+	_, err = prepare.Exec(accrual, status, id)
+	return err
+}
