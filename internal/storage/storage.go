@@ -11,7 +11,7 @@ type IStorage interface {
 	CheckID(username, id string) error
 	GetOrders(username string) (service.Orders, error)
 	GetBalance(username string) (schema.Balance, error)
-	UpdateOrder(id, status string, accrual int) error
+	UpdateOrder(id, status string, accrual float64) error
 }
 
 type Type string

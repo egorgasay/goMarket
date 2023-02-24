@@ -197,7 +197,7 @@ func (p Postgres) GetBalance(username string) (schema.Balance, error) {
 	return balance, row.Scan(&balance.Current, &balance.Withdrawn)
 }
 
-func (p Postgres) UpdateOrder(id, status string, accrual int) error {
+func (p Postgres) UpdateOrder(id, status string, accrual float64) error {
 	prepare, err := p.DB.Prepare(changeOrer)
 	if err != nil {
 		return err

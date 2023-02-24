@@ -12,7 +12,7 @@ type IRealStorage interface {
 	CheckID(username, id string) error
 	GetOrders(username string) (Orders, error)
 	GetBalance(username string) (schema.Balance, error)
-	UpdateOrder(id, status string, accrual int) error
+	UpdateOrder(id, status string, accrual float64) error
 }
 
 type Orders []*schema.UserOrder
