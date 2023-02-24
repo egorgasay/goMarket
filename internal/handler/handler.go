@@ -105,7 +105,7 @@ func (h Handler) PostOrders() http.HandlerFunc {
 			return
 		}
 
-		err = h.logic.CheckID(cookie, string(id))
+		err = h.logic.CheckID(h.conf.Host, cookie, string(id))
 		if errors.Is(err, service.ErrCreatedByThisUser) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprintf(`{"msg": "%s"}`, err)))

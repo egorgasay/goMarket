@@ -21,7 +21,7 @@ func (uc UseCase) CheckPassword(login, passwd string) error {
 	return uc.storage.CheckPassword(login, passwd)
 }
 
-func (uc UseCase) CheckID(cookie, id string) error {
+func (uc UseCase) CheckID(host, cookie, id string) error {
 	if !allCharsIsDigits(id) {
 		return service.ErrBadID
 	}
@@ -44,17 +44,17 @@ func (uc UseCase) CheckID(cookie, id string) error {
 		return err
 	}
 
-	go uc.updateStatus(id)
+	go uc.updateStatus(host, id)
 
 	return nil
 }
 
-func (uc UseCase) updateStatus(id string) {
+func (uc UseCase) updateStatus(host, id string) {
 	ticker := time.NewTicker(1 * time.Second)
 	for {
 		select {
 		case <-ticker.C:
-			res, err := http.Get("http://localhost:8080/api/orders/" + id)
+			res, err := http.Get(host + "/api/orders/" + id)
 			if err != nil {
 				log.Println(err)
 				continue

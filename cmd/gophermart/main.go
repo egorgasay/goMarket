@@ -34,7 +34,7 @@ func main() {
 
 	//router.Use(gzip.Gzip(gzip.BestSpeed))
 	go func() {
-		fmt.Println("Stating server...")
+		fmt.Println("Stating server: " + cfg.Host)
 		log.Fatal(http.ListenAndServe(cfg.Host, router))
 	}()
 
