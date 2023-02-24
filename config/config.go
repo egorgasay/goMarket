@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"github.com/egorgasay/dockerdb"
+	"gomarket/internal/cookies"
 	"gomarket/internal/repository"
 	"log"
 	"os"
@@ -52,6 +53,7 @@ func New() *Config {
 
 	if key, ok := os.LookupEnv("KEY"); ok {
 		f.key = key
+		cookies.SetSecret([]byte(key))
 	}
 
 	var ddb *dockerdb.VDB
