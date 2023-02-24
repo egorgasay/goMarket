@@ -136,7 +136,29 @@ func (h Handler) PostOrders() http.HandlerFunc {
 
 func (h Handler) GetUserOrders() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		cookie, err := cookies.Get(r)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			return
+		}
 
+		orders, err := h.logic.GetOrders(cookie)
+		if errors.Is(err, service.ErrNoResult) {
+			w.WriteHeader(http.StatusNoContent)
+			w.Write([]byte(fmt.Sprintf(`{"msg": "%s"}`, err)))
+			return
+		}
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(orders)
 	}
 }
 func (h Handler) GetOrder() http.HandlerFunc {

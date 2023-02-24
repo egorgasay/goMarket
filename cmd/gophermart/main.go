@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"gomarket/config"
@@ -33,6 +34,7 @@ func main() {
 
 	//router.Use(gzip.Gzip(gzip.BestSpeed))
 	go func() {
+		fmt.Println("Stating server...")
 		log.Fatal(http.ListenAndServe(cfg.Host, router))
 	}()
 

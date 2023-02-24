@@ -1,6 +1,8 @@
 package usecase
 
-import "gomarket/internal/storage"
+import (
+	"gomarket/internal/storage"
+)
 
 type UseCase struct {
 	storage storage.IStorage

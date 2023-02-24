@@ -8,6 +8,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgerrcode"
 	"github.com/lib/pq"
+	"gomarket/internal/schema"
 	"gomarket/internal/storage/service"
 	"log"
 )
@@ -17,10 +18,13 @@ const validatePassword = `
 SELECT 1 FROM "Users" WHERE "Name" = $1 AND "Password" = $2
 `
 const addOrder = `
-INSERT INTO "Orders" VALUES ($1, now()::timestamp, $2, 'REGISTERED', 0)
+INSERT INTO "Orders" VALUES ($1, now()::timestamp, $2, 'NEW', 0)
 `
 const getOwnerByID = `
 SELECT "Owner" FROM "Orders" WHERE "UID" = $1
+`
+const getOrders = `
+SELECT "UID", "Status", "Accrual", "Date" FROM "Orders" WHERE "Owner" = $1
 `
 
 type Postgres struct {
@@ -106,7 +110,6 @@ func (p Postgres) CheckID(username, id string) error {
 	if err == nil {
 		return nil
 	}
-	log.Println(username, id)
 
 	e, ok := err.(*pq.Error)
 	if !ok {
@@ -136,4 +139,36 @@ func (p Postgres) CheckID(username, id string) error {
 	}
 
 	return err
+}
+
+func (p Postgres) GetOrders(username string) (service.Orders, error) {
+	prepare, err := p.DB.Prepare(getOrders)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := prepare.Query(username)
+
+	if err != nil {
+		return nil, err
+	}
+
+	orders := make(service.Orders, 0)
+
+	for rows.Next() {
+		order := schema.UserOrder{}
+		err = rows.Scan(&order.Number, &order.Status, &order.Accrual, &order.UploadedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, &order)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
 }

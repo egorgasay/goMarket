@@ -8,7 +8,7 @@ CREATE TABLE "Orders" (
     "Date" TIMESTAMP NOT NULL,
     "UID" VARCHAR(255) NOT NULL,
     "Status" VARCHAR(255) CHECK (
-        "Status" IN ('REGISTERED', 'INVALID', 'PROCESSING', 'PROCESSED')
+        "Status" IN ('NEW', 'REGISTERED', 'INVALID', 'PROCESSING', 'PROCESSED')
     ),
-    "Accrual" MONEY NOT NULL
+    "Accrual" DECIMAL
 );
