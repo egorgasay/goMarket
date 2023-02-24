@@ -11,6 +11,7 @@ type IRealStorage interface {
 	CheckPassword(login, passwd string) error
 	CheckID(username, id string) error
 	GetOrders(username string) (Orders, error)
+	GetBalance(username string) (schema.Balance, error)
 }
 
 type Orders []*schema.UserOrder

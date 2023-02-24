@@ -119,7 +119,7 @@ func (h Handler) PostOrders() http.HandlerFunc {
 		}
 
 		if errors.Is(err, service.ErrBadID) {
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusUnprocessableEntity)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
 		}
@@ -169,7 +169,23 @@ func (h Handler) GetOrder() http.HandlerFunc {
 
 func (h Handler) GetBalance() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		cookie, err := cookies.Get(r)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			return
+		}
 
+		balance, err := h.logic.GetBalance(cookie)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(balance)
 	}
 }
 

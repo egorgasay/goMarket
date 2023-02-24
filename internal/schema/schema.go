@@ -11,3 +11,8 @@ type UserOrder struct {
 	Accrual    float64 `json:"accrual,omitempty"`
 	UploadedAt string  `json:"uploaded_at"`
 }
+
+type Balance struct {
+	Current   string `json:"current"`
+	Withdrawn string `json:"withdrawn"`
+}

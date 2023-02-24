@@ -13,7 +13,7 @@ import (
 	"log"
 )
 
-const createUser = `INSERT INTO "Users" VALUES ($1, $2, 0.0)`
+const createUser = `INSERT INTO "Users" VALUES ($1, $2, 0.0, 0.0)`
 const validatePassword = `
 SELECT 1 FROM "Users" WHERE "Name" = $1 AND "Password" = $2
 `
@@ -25,6 +25,9 @@ SELECT "Owner" FROM "Orders" WHERE "UID" = $1
 `
 const getOrders = `
 SELECT "UID", "Status", "Accrual", "Date" FROM "Orders" WHERE "Owner" = $1
+`
+const getBalance = `
+SELECT "Balance", "Withdrawn" FROM "Users" WHERE "Name" = $1
 `
 
 type Postgres struct {
@@ -148,7 +151,6 @@ func (p Postgres) GetOrders(username string) (service.Orders, error) {
 	}
 
 	rows, err := prepare.Query(username)
-
 	if err != nil {
 		return nil, err
 	}
@@ -175,4 +177,16 @@ func (p Postgres) GetOrders(username string) (service.Orders, error) {
 	}
 
 	return orders, nil
+}
+
+func (p Postgres) GetBalance(username string) (schema.Balance, error) {
+	prepare, err := p.DB.Prepare(getBalance)
+	if err != nil {
+		return schema.Balance{}, err
+	}
+
+	row := prepare.QueryRow(username)
+
+	var balance schema.Balance
+	return balance, row.Scan(&balance.Current, &balance.Withdrawn)
 }

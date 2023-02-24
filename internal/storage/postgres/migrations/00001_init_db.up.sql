@@ -1,7 +1,8 @@
 CREATE TABLE "Users" (
     "Name" VARCHAR(255) PRIMARY KEY NOT NULL,
     "Password" VARCHAR(255) NOT NULL,
-    "Balance" MONEY NOT NULL
+    "Balance" MONEY NOT NULL,
+    "Withdrawn" DECIMAL
 );
 CREATE TABLE "Orders" (
     "Owner" VARCHAR(255) NOT NULL REFERENCES "Users"("Name"),

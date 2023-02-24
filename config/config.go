@@ -63,11 +63,11 @@ func New() *Config {
 
 		cfg := dockerdb.CustomDB{
 			DB: dockerdb.DB{
-				Name:     "vdb4",
+				Name:     "vdb6",
 				User:     "admin",
 				Password: "admin",
 			},
-			Port: "12582",
+			Port: "12584",
 			Vendor: dockerdb.Vendor{
 				Name:  dockerdb.Postgres,
 				Image: "postgres", // TODO: add dockerdb.Postgres15 as image into dockerdb package

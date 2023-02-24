@@ -38,6 +38,25 @@ func (uc UseCase) CheckID(cookie, id string) error {
 	return uc.storage.CheckID(username, id)
 }
 
+func (uc UseCase) GetBalance(cookie string) ([]byte, error) {
+	username, err := getUsernameFromCookie(cookie)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	balance, err := uc.storage.GetBalance(username)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	res, err := json.Marshal(balance)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	return res, nil
+}
+
 func Valid(number int) bool {
 	return (number%10+checksum(number/10))%10 == 0
 }
