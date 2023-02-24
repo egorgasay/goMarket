@@ -51,7 +51,8 @@ func (uc UseCase) CheckID(host, cookie, id string) error {
 
 func (uc UseCase) updateStatus(host, id string) {
 	ticker := time.NewTicker(1 * time.Second)
-	for try := 0; try < 40; try++ {
+	status := ""
+	for status != "PROCESSED" || status != "INVALID" {
 		select {
 		case <-ticker.C:
 			res, err := http.Get(host + "/api/orders/" + id)
@@ -88,6 +89,8 @@ func (uc UseCase) updateStatus(host, id string) {
 			if err != nil {
 				log.Println(err)
 			}
+
+			status = response.Status
 		}
 	}
 }
