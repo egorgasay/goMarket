@@ -16,7 +16,7 @@ type IStorage interface {
 	CheckID(username, id string) error
 	GetOrders(username string) (Orders, error)
 	GetBalance(username string) (schema.Balance, error)
-	UpdateOrder(id, status string, accrual float64) error
+	UpdateOrder(username, id, status string, accrual float64) error
 }
 
 type Storage struct {

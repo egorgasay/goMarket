@@ -44,12 +44,12 @@ func (uc UseCase) CheckID(host, cookie, id string) error {
 		return err
 	}
 
-	go uc.updateStatus(host, id)
+	go uc.updateStatus(username, host, id)
 
 	return nil
 }
 
-func (uc UseCase) updateStatus(host, id string) {
+func (uc UseCase) updateStatus(username, host, id string) {
 	ticker := time.NewTicker(1 * time.Second)
 	status := ""
 	for status != "PROCESSED" || status != "INVALID" {
@@ -85,7 +85,7 @@ func (uc UseCase) updateStatus(host, id string) {
 				continue
 			}
 
-			err = uc.storage.UpdateOrder(id, response.Status, response.Accrual)
+			err = uc.storage.UpdateOrder(username, id, response.Status, response.Accrual)
 			if err != nil {
 				log.Println(err)
 			}

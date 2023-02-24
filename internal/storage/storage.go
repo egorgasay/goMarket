@@ -32,6 +32,11 @@ SET "Accrual" = $1,
     "Status" = $2
 WHERE "UID" = $3
 `
+const updateBalance = `
+UPDATE "Users"
+SET "Balance" = "Balance" + $1
+WHERE "Name" = $2
+`
 
 func (s Storage) CreateUser(login, passwd string) error {
 	prepare, err := s.DB.Prepare(createUser)
@@ -165,12 +170,22 @@ func (s Storage) GetBalance(username string) (schema.Balance, error) {
 	return balance, row.Scan(&balance.Current, &balance.Withdrawn)
 }
 
-func (s Storage) UpdateOrder(id, status string, accrual float64) error {
+func (s Storage) UpdateOrder(username, id, status string, accrual float64) error {
 	prepare, err := s.DB.Prepare(changeOrer)
 	if err != nil {
 		return err
 	}
 
 	_, err = prepare.Exec(accrual, status, id)
+	if err != nil {
+		return err
+	}
+
+	prepareBalance, err := s.DB.Prepare(updateBalance)
+	if err != nil {
+		return err
+	}
+
+	_, err = prepareBalance.Exec(accrual, username)
 	return err
 }
