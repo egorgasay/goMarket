@@ -170,5 +170,9 @@ func (p Postgres) GetOrders(username string) (service.Orders, error) {
 		return nil, err
 	}
 
+	if len(orders) == 0 {
+		return nil, service.ErrNoResult
+	}
+
 	return orders, nil
 }
