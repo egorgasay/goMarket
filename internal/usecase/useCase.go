@@ -3,9 +3,14 @@ package usecase
 import (
 	"encoding/hex"
 	"encoding/json"
+	"gomarket/internal/schema"
 	"gomarket/internal/storage/service"
+	"io"
+	"log"
+	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (uc UseCase) CreateUser(login, passwd string) error {
@@ -34,8 +39,57 @@ func (uc UseCase) CheckID(cookie, id string) error {
 	if !Valid(ID) {
 		return service.ErrBadID
 	}
+	err = uc.storage.CheckID(username, id)
+	if err != nil {
+		return err
+	}
 
-	return uc.storage.CheckID(username, id)
+	go uc.updateStatus(id)
+
+	return nil
+}
+
+func (uc UseCase) updateStatus(id string) {
+	ticker := time.NewTicker(1 * time.Second)
+	for {
+		select {
+		case <-ticker.C:
+			res, err := http.Get("http://localhost:8080/api/orders/" + id)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			switch res.StatusCode {
+			case http.StatusNoContent:
+				log.Println("No content")
+				continue
+			case http.StatusInternalServerError:
+				log.Println("Calc service error")
+				continue
+			case http.StatusTooManyRequests:
+				log.Println("Too many request")
+				continue
+			}
+
+			read, err := io.ReadAll(res.Body)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			var response schema.ResponseFromTheCalculationSystem
+			err = json.Unmarshal(read, &response)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			err = uc.storage.UpdateOrder(id, response.Status, response.Accrual)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+	}
 }
 
 func (uc UseCase) GetBalance(cookie string) ([]byte, error) {

@@ -16,3 +16,9 @@ type Balance struct {
 	Current   string `json:"current"`
 	Withdrawn string `json:"withdrawn"`
 }
+
+type ResponseFromTheCalculationSystem struct {
+	Order   string `json:"order"`
+	Status  string `json:"status"`
+	Accrual int    `json:"accrual"`
+}

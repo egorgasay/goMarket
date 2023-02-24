@@ -29,6 +29,12 @@ SELECT "UID", "Status", "Accrual", "Date" FROM "Orders" WHERE "Owner" = $1
 const getBalance = `
 SELECT "Balance", "Withdrawn" FROM "Users" WHERE "Name" = $1
 `
+const changeOrer = `
+UPDATE "Orders"
+SET "Accrual" = $1,
+    "Status" = $2
+WHERE "UID" = $3
+`
 
 type Postgres struct {
 	DB *sql.DB
@@ -189,4 +195,14 @@ func (p Postgres) GetBalance(username string) (schema.Balance, error) {
 
 	var balance schema.Balance
 	return balance, row.Scan(&balance.Current, &balance.Withdrawn)
+}
+
+func (p Postgres) UpdateOrder(id, status string, accrual int) error {
+	prepare, err := p.DB.Prepare(changeOrer)
+	if err != nil {
+		return err
+	}
+
+	_, err = prepare.Exec(accrual, status, id)
+	return err
 }
