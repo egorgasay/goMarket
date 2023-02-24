@@ -41,6 +41,7 @@ func BindJSON(w http.ResponseWriter, r *http.Request, obj any) error {
 
 func (h Handler) PostRegister() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		var cred schema.AuthRequestJSON
 		err := BindJSON(w, r, &cred)
 		if err != nil {
@@ -65,6 +66,7 @@ func (h Handler) PostRegister() http.HandlerFunc {
 
 func (h Handler) PostLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		var cred schema.AuthRequestJSON
 		err := BindJSON(w, r, &cred)
 		if err != nil {

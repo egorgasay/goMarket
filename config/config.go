@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	defaultHost = "127.0.0.1:8080"
+	defaultHost = ":8080"
 )
 
 type Flag struct {
@@ -63,14 +63,14 @@ func New() *Config {
 
 		cfg := dockerdb.CustomDB{
 			DB: dockerdb.DB{
-				Name:     "vdb",
+				Name:     "vdb2",
 				User:     "admin",
 				Password: "admin",
 			},
-			Port: "1254",
+			Port: "12589",
 			Vendor: dockerdb.Vendor{
 				Name:  dockerdb.Postgres,
-				Image: "postgres:15", // TODO: add dockerdb.Postgres15 as image into dockerdb package
+				Image: "postgres", // TODO: add dockerdb.Postgres15 as image into dockerdb package
 			},
 		}
 

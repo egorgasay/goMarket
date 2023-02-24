@@ -27,7 +27,7 @@ type Postgres struct {
 	DB *sql.DB
 }
 
-func New(db *sql.DB) service.IRealStorage {
+func New(db *sql.DB, pathToMigrations string) service.IRealStorage {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		log.Fatal(err)
@@ -35,7 +35,7 @@ func New(db *sql.DB) service.IRealStorage {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
+		pathToMigrations,
 		"gomarket", driver)
 	if err != nil {
 		log.Fatal(err)

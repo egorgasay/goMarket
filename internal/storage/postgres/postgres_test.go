@@ -15,14 +15,14 @@ func TestMain(m *testing.M) {
 	ctx := context.TODO()
 	cfg := dockerdb.CustomDB{
 		DB: dockerdb.DB{
-			Name:     "vdb_test",
+			Name:     "vdb_te1",
 			User:     "admin",
 			Password: "admin",
 		},
-		Port: "1254",
+		Port: "1250",
 		Vendor: dockerdb.Vendor{
 			Name:  dockerdb.Postgres,
-			Image: "postgres:15", // TODO: add dockerdb.Postgres15 as image into dockerdb package
+			Image: "postgres", // TODO: add dockerdb.Postgres15 as image into dockerdb package
 		},
 	}
 	vdb, err := dockerdb.New(ctx, cfg)
@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	TestDB = Postgres{vdb.DB}
+	TestDB = New(vdb.DB, "file://migrations").(Postgres)
 	// Run tests
 	exitVal := m.Run()
 
@@ -39,7 +39,6 @@ func TestMain(m *testing.M) {
 	queries := []string{
 		"DROP SCHEMA public CASCADE;",
 		"CREATE SCHEMA public;",
-		"GRANT ALL ON SCHEMA public TO postgres;",
 		"GRANT ALL ON SCHEMA public TO public;",
 		"COMMENT ON SCHEMA public IS 'standard public schema';",
 	}
@@ -79,6 +78,10 @@ func TestPostgres_CreateUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	if login != username {
+		t.Fatalf("want %s got %s", login, username)
+	}
 }
 
 func TestPostgres_CheckPassword(t *testing.T) {
@@ -95,5 +98,9 @@ func TestPostgres_CheckPassword(t *testing.T) {
 		Scan(&username)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if login != username {
+		t.Fatalf("want %s got %s", login, username)
 	}
 }
