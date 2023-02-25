@@ -246,6 +246,11 @@ func (s Storage) GetWithdrawals(username string) ([]schema.Withdrawn, error) {
 		return nil, err
 	}
 
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
 	var withdrawals = make([]schema.Withdrawn, 0)
 	for rows.Next() {
 		var withdrawal schema.Withdrawn

@@ -53,47 +53,45 @@ func (uc UseCase) updateStatus(username, host, id string) {
 	ticker := time.NewTicker(1 * time.Second)
 	status := ""
 	for status != "PROCESSED" && status != "INVALID" {
-		select {
-		case <-ticker.C:
-			res, err := http.Get(host + "/api/orders/" + id)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			switch res.StatusCode {
-			case http.StatusNoContent:
-				log.Println("No content")
-				continue
-			case http.StatusInternalServerError:
-				log.Println("Calc storage error")
-				continue
-			case http.StatusTooManyRequests:
-				log.Println("Too many request")
-				continue
-			}
-
-			read, err := io.ReadAll(res.Body)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-
-			res.Body.Close()
-
-			var response schema.ResponseFromTheCalculationSystem
-			err = json.Unmarshal(read, &response)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-
-			err = uc.storage.UpdateOrder(username, id, response.Status, response.Accrual)
-			if err != nil {
-				log.Println(err)
-			}
-
-			status = response.Status
+		<-ticker.C
+		res, err := http.Get(host + "/api/orders/" + id)
+		if err != nil {
+			log.Println(err)
+			continue
 		}
+		switch res.StatusCode {
+		case http.StatusNoContent:
+			log.Println("No content")
+			continue
+		case http.StatusInternalServerError:
+			log.Println("Calc storage error")
+			continue
+		case http.StatusTooManyRequests:
+			log.Println("Too many request")
+			continue
+		}
+
+		read, err := io.ReadAll(res.Body)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		res.Body.Close()
+
+		var response schema.ResponseFromTheCalculationSystem
+		err = json.Unmarshal(read, &response)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		err = uc.storage.UpdateOrder(username, id, response.Status, response.Accrual)
+		if err != nil {
+			log.Println(err)
+		}
+
+		status = response.Status
 	}
 }
 
@@ -208,7 +206,7 @@ func getUsernameFromCookie(cookie string) (string, error) {
 
 func allCharsIsDigits(input string) bool {
 	for _, sym := range input {
-		if strings.ContainsAny(string(sym), "0123456789") == false {
+		if !strings.ContainsAny(string(sym), "0123456789") {
 			return false
 		}
 	}
