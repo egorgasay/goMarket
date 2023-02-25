@@ -15,8 +15,6 @@ func (h Handler) PrivateRoutes(r chi.Router) {
 	r.Post("/api/user/orders", h.PostOrders())
 	r.Get("/api/user/orders", h.GetUserOrders())
 
-	r.Get("/api/orders/{number}", h.GetOrder())
-
 	r.Get("/api/user/balance", h.GetBalance())
 
 	r.Post("/api/user/balance/withdraw", h.PostWithdraw())

@@ -1,5 +1,7 @@
 package schema
 
+import "time"
+
 type AuthRequestJSON struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
@@ -26,4 +28,10 @@ type ResponseFromTheCalculationSystem struct {
 type WithdrawnRequest struct {
 	Order string  `json:"order"`
 	Sum   float64 `json:"sum"`
+}
+
+type Withdrawn struct {
+	Order       string    `json:"order"`
+	Sum         int       `json:"sum"`
+	ProcessedAt time.Time `json:"processed_at"`
 }

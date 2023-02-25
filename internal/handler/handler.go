@@ -161,11 +161,6 @@ func (h Handler) GetUserOrders() http.HandlerFunc {
 		w.Write(orders)
 	}
 }
-func (h Handler) GetOrder() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-	}
-}
 
 func (h Handler) GetBalance() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -230,6 +225,28 @@ func (h Handler) PostWithdraw() http.HandlerFunc {
 
 func (h Handler) GetWithdrawals() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		cookie, err := cookies.Get(r)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			return
+		}
 
+		withdrawals, err := h.logic.GetWithdrawals(cookie)
+		if errors.Is(err, storage.ErrNoWithdrawals) {
+			w.WriteHeader(http.StatusNoContent)
+			w.Write([]byte(fmt.Sprintf(`{"msg": "%s"}`, err)))
+			return
+		}
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(withdrawals)
 	}
 }

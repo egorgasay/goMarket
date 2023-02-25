@@ -11,54 +11,6 @@ import (
 	"sync"
 )
 
-const createUser = `INSERT INTO "Users" VALUES ($1, $2, 0.0, 0.0)`
-const validatePassword = `
-SELECT 1 FROM "Users" WHERE "Name" = $1 AND "Password" = $2
-`
-const addOrder = `
-INSERT INTO "Orders" VALUES ($1, now()::timestamp, $2, 'NEW', 0)
-`
-const getOwnerByID = `
-SELECT "Owner" FROM "Orders" WHERE "UID" = $1
-`
-const getOrders = `
-SELECT "UID", "Status", "Accrual", "Date" FROM "Orders" WHERE "Owner" = $1
-`
-const getBalance = `
-SELECT "Balance", "Withdrawn" FROM "Users" WHERE "Name" = $1
-`
-const changeOrer = `
-UPDATE "Orders"
-SET "Accrual" = $1,
-    "Status" = $2
-WHERE "UID" = $3
-`
-const updateBalance = `
-UPDATE "Users"
-SET "Balance" = "Balance" + $1
-WHERE "Name" = $2
-`
-const changeOrerWithoutAccrual = `
-UPDATE "Orders"
-SET "Status" = $2
-WHERE "UID" = $3
-`
-const checkBalance = `
-SELECT 
-    CASE
-         WHEN "Balance" > $1 THEN 1
-		 ELSE 2
-    END
-FROM "Users"
-WHERE "Name" = $2
-`
-const drawBonuses = `
-UPDATE "Users"
-SET "Balance" = "Balance" - $1, 
-    "Withdrawn" = "Withdrawn" + $1
-WHERE "Name" = $2
-`
-
 func (s Storage) CreateUser(login, passwd string) error {
 	prepare, err := s.DB.Prepare(createUser)
 	if err != nil {
@@ -270,5 +222,44 @@ func (s Storage) Withdraw(username string, amount float64, orderID string) error
 		return err
 	}
 
+	prepareStageDraw, err := s.DB.Prepare(stageDraw)
+	if err != nil {
+		return err
+	}
+
+	_, err = prepareStageDraw.Exec(username, orderID, amount)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (s Storage) GetWithdrawals(username string) ([]schema.Withdrawn, error) {
+	prepare, err := s.DB.Prepare(getWithdrawals)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := prepare.Query(username)
+	if err != nil {
+		return nil, err
+	}
+
+	var withdrawals = make([]schema.Withdrawn, 0)
+	for rows.Next() {
+		var withdrawal schema.Withdrawn
+		err = rows.Scan(&withdrawal.Order, &withdrawal.Sum, &withdrawal.ProcessedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		withdrawals = append(withdrawals, withdrawal)
+	}
+
+	if len(withdrawals) == 0 {
+		return nil, ErrNoWithdrawals
+	}
+
+	return withdrawals, nil
 }

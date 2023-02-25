@@ -1,1 +1,0 @@
-ALTER TABLE "Orders" DROP CONSTRAINT "OrderUID";

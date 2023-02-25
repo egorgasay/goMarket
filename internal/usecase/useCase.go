@@ -136,6 +136,40 @@ func (uc UseCase) DrawBonuses(cookie string, sum float64, orderID string) error 
 	return uc.storage.Withdraw(username, sum, orderID)
 }
 
+func (uc UseCase) GetWithdrawals(cookie string) ([]byte, error) {
+	username, err := getUsernameFromCookie(cookie)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	withdrawals, err := uc.storage.GetWithdrawals(username)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	res, err := json.Marshal(withdrawals)
+	return res, err
+}
+
+func (uc UseCase) GetOrders(cookie string) ([]byte, error) {
+	username, err := getUsernameFromCookie(cookie)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	orders, err := uc.storage.GetOrders(username)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	res, err := json.Marshal(orders)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	return res, nil
+}
+
 func Valid(number int) bool {
 	return (number%10+checksum(number/10))%10 == 0
 }
@@ -168,25 +202,6 @@ func getUsernameFromCookie(cookie string) (string, error) {
 	username := split[1]
 	user, err := hex.DecodeString(username)
 	return string(user), err
-}
-
-func (uc UseCase) GetOrders(cookie string) ([]byte, error) {
-	username, err := getUsernameFromCookie(cookie)
-	if err != nil {
-		return []byte(""), err
-	}
-
-	orders, err := uc.storage.GetOrders(username)
-	if err != nil {
-		return []byte(""), err
-	}
-
-	res, err := json.Marshal(orders)
-	if err != nil {
-		return []byte(""), err
-	}
-
-	return res, nil
 }
 
 func allCharsIsDigits(input string) bool {

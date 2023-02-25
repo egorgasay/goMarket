@@ -18,6 +18,7 @@ type IStorage interface {
 	GetBalance(username string) (schema.Balance, error)
 	UpdateOrder(username, id, status string, accrual float64) error
 	Withdraw(username string, amount float64, orderID string) error
+	GetWithdrawals(username string) ([]schema.Withdrawn, error)
 }
 
 type Storage struct {
@@ -36,6 +37,7 @@ var ErrCreatedByThisUser = errors.New("uid already exists and created by this us
 var ErrBadID = errors.New("wrong id format")
 var ErrNoResult = errors.New("the user has no orders")
 var ErrNotEnoughMoney = errors.New("insufficient funds for payment")
+var ErrNoWithdrawals = errors.New("user don't have withdrawals operations")
 
 //var ErrWrongOrderID = errors.New("wrong order id")
 
