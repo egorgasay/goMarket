@@ -42,6 +42,14 @@ UPDATE "Orders"
 SET "Status" = $2
 WHERE "UID" = $3
 `
+const checkBalance = `
+SELECT 
+    CASE WHEN "Balance" > $1
+        THEN TRUE
+	ELSE FALSE
+FROM "Users"
+WHERE "Name" = $2
+`
 
 func (s Storage) CreateUser(login, passwd string) error {
 	prepare, err := s.DB.Prepare(createUser)
@@ -208,4 +216,9 @@ func (s Storage) UpdateOrder(username, id, status string, accrual float64) error
 
 	_, err = prepareBalance.Exec(accrual, username)
 	return err
+}
+
+func (s Storage) Withdraw(username string) error {
+
+	return nil
 }
