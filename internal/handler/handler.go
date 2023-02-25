@@ -10,6 +10,7 @@ import (
 	"gomarket/internal/storage"
 	"gomarket/internal/usecase"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -54,6 +55,7 @@ func (h Handler) PostRegister() http.HandlerFunc {
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
 		} else if err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
@@ -79,6 +81,7 @@ func (h Handler) PostLogin() http.HandlerFunc {
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
 		} else if err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
@@ -125,6 +128,7 @@ func (h Handler) PostOrders() http.HandlerFunc {
 		}
 
 		if err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
@@ -139,6 +143,7 @@ func (h Handler) GetUserOrders() http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		cookie, err := cookies.Get(r)
 		if err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
@@ -152,6 +157,7 @@ func (h Handler) GetUserOrders() http.HandlerFunc {
 		}
 
 		if err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
@@ -174,6 +180,7 @@ func (h Handler) GetBalance() http.HandlerFunc {
 
 		balance, err := h.logic.GetBalance(cookie)
 		if err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
@@ -215,6 +222,7 @@ func (h Handler) PostWithdraw() http.HandlerFunc {
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(err)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
 		}
@@ -242,6 +250,7 @@ func (h Handler) GetWithdrawals() http.HandlerFunc {
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(err)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
 		}
