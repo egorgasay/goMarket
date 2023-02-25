@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	defaultHost = "127.0.0.1:8080"
+	defaultHost = ":8080"
 )
 
 type Flag struct {

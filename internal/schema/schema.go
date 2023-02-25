@@ -13,8 +13,8 @@ type UserOrder struct {
 }
 
 type Balance struct {
-	Current   string `json:"current"`
-	Withdrawn string `json:"withdrawn"`
+	Current   float32 `json:"current"`
+	Withdrawn float32 `json:"withdrawn"`
 }
 
 type ResponseFromTheCalculationSystem struct {
