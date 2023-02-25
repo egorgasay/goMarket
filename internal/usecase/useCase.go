@@ -78,6 +78,8 @@ func (uc UseCase) updateStatus(username, host, id string) {
 				continue
 			}
 
+			res.Body.Close()
+
 			var response schema.ResponseFromTheCalculationSystem
 			err = json.Unmarshal(read, &response)
 			if err != nil {
