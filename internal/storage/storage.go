@@ -229,6 +229,10 @@ func (s Storage) UpdateOrder(username, id, status string, accrual float64) error
 var usersBlock = make(map[string]*sync.Mutex)
 
 func (s Storage) Withdraw(username string, amount float64, orderID string) error {
+	if _, ok := usersBlock[username]; !ok {
+		usersBlock[username] = &sync.Mutex{}
+	}
+
 	usersBlock[username].Lock()
 	defer usersBlock[username].Unlock()
 
