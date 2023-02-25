@@ -17,6 +17,7 @@ type IStorage interface {
 	GetOrders(username string) (Orders, error)
 	GetBalance(username string) (schema.Balance, error)
 	UpdateOrder(username, id, status string, accrual float64) error
+	Withdraw(username string, amount float64, orderID string) error
 }
 
 type Storage struct {
@@ -34,6 +35,9 @@ var ErrCreatedByAnotherUser = errors.New("uid already exists and created by anot
 var ErrCreatedByThisUser = errors.New("uid already exists and created by this user")
 var ErrBadID = errors.New("wrong id format")
 var ErrNoResult = errors.New("the user has no orders")
+var ErrNotEnoughMoney = errors.New("insufficient funds for payment")
+
+//var ErrWrongOrderID = errors.New("wrong order id")
 
 func New(db *sql.DB, pathToMigrations string) IStorage {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})

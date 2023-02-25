@@ -114,6 +114,28 @@ func (uc UseCase) GetBalance(cookie string) ([]byte, error) {
 	return res, nil
 }
 
+func (uc UseCase) DrawBonuses(cookie string, sum float64, orderID string) error {
+	if !allCharsIsDigits(orderID) {
+		return storage.ErrBadID
+	}
+
+	username, err := getUsernameFromCookie(cookie)
+	if err != nil {
+		return err
+	}
+
+	ID, err := strconv.Atoi(orderID)
+	if err != nil {
+		return storage.ErrBadID
+	}
+
+	if !Valid(ID) {
+		return storage.ErrBadID
+	}
+
+	return uc.storage.Withdraw(username, sum, orderID)
+}
+
 func Valid(number int) bool {
 	return (number%10+checksum(number/10))%10 == 0
 }

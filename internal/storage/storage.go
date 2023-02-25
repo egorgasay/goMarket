@@ -8,6 +8,7 @@ import (
 	"github.com/lib/pq"
 	"gomarket/internal/schema"
 	"log"
+	"sync"
 )
 
 const createUser = `INSERT INTO "Users" VALUES ($1, $2, 0.0, 0.0)`
@@ -44,10 +45,17 @@ WHERE "UID" = $3
 `
 const checkBalance = `
 SELECT 
-    CASE WHEN "Balance" > $1
-        THEN TRUE
-	ELSE FALSE
+    CASE
+         WHEN "Balance" > $1 THEN 1
+		 ELSE 2
+    END
 FROM "Users"
+WHERE "Name" = $2
+`
+const drawBonuses = `
+UPDATE "Users"
+SET "Balance" = "Balance" - $1, 
+    "Withdrawn" = "Withdrawn" + $1
 WHERE "Name" = $2
 `
 
@@ -218,7 +226,45 @@ func (s Storage) UpdateOrder(username, id, status string, accrual float64) error
 	return err
 }
 
-func (s Storage) Withdraw(username string) error {
+var usersBlock = make(map[string]*sync.Mutex)
+
+func (s Storage) Withdraw(username string, amount float64, orderID string) error {
+	usersBlock[username].Lock()
+	defer usersBlock[username].Unlock()
+
+	prepare, err := s.DB.Prepare(checkBalance)
+	if err != nil {
+		return err
+	}
+
+	row := prepare.QueryRow(amount, username) //, orderID)
+	if row.Err() != nil {
+		return err
+	}
+
+	var isEnoughMoney int
+	err = row.Scan(&isEnoughMoney)
+	if err != nil {
+		return err
+	}
+
+	if isEnoughMoney == 2 {
+		return ErrNotEnoughMoney
+	}
+
+	//if isEnoughMoney == 3 {
+	//	return ErrWrongOrderID
+	//}
+
+	prepareDraw, err := s.DB.Prepare(drawBonuses)
+	if err != nil {
+		return err
+	}
+
+	_, err = prepareDraw.Exec(amount, username)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

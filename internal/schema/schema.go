@@ -22,3 +22,8 @@ type ResponseFromTheCalculationSystem struct {
 	Status  string  `json:"status"`
 	Accrual float64 `json:"accrual"`
 }
+
+type WithdrawnRequest struct {
+	Order string  `json:"order"`
+	Sum   float64 `json:"sum"`
+}

@@ -191,7 +191,40 @@ func (h Handler) GetBalance() http.HandlerFunc {
 
 func (h Handler) PostWithdraw() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		cookie, err := cookies.Get(r)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			return
+		}
 
+		var withdrawn schema.WithdrawnRequest
+		err = BindJSON(w, r, &withdrawn)
+		if err != nil {
+			return
+		}
+
+		err = h.logic.DrawBonuses(cookie, withdrawn.Sum, withdrawn.Order)
+		if errors.Is(err, storage.ErrNotEnoughMoney) {
+			w.WriteHeader(http.StatusPaymentRequired)
+			w.Write([]byte(fmt.Sprintf(`{"msg": "%s"}`, err)))
+			return
+		}
+
+		if errors.Is(err, storage.ErrBadID) {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			return
+		}
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
