@@ -61,7 +61,7 @@ func (s Storage) CheckID(username, id string) error {
 		return err
 	}
 
-	_, err = prepare.Exec(username, id)
+	_, err = prepare.Exec(id, username)
 	if err == nil {
 		return nil
 	}

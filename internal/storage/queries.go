@@ -5,7 +5,7 @@ const validatePassword = `
 SELECT 1 FROM "Users" WHERE "Name" = $1 AND "Password" = $2
 `
 const addOrder = `
-INSERT INTO "Orders" VALUES ($2, $1, now()::timestamp, 'NEW', 0)
+INSERT INTO "Orders" VALUES ($1, $2, now()::timestamp, 'NEW', 0)
 `
 const getOwnerByID = `
 SELECT "Owner" FROM "Orders" WHERE "UID" = $1
@@ -51,5 +51,5 @@ const stageDraw = `
 INSERT INTO Withdrawals VALUES ($1, $2, $3, now()::timestamp)
 `
 const getWithdrawals = `
-SELECT "UID", "Sum", "Date" FROM Withdrawals WHERE "Client" = $1
+SELECT "ID", "Sum", "Date" FROM Withdrawals WHERE "Client" = $1
 `

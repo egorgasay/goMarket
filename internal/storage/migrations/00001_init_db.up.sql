@@ -15,7 +15,7 @@ CREATE TABLE "Orders" (
 );
 CREATE TABLE Withdrawals (
     "Client" VARCHAR(255) NOT NULL REFERENCES "Users"("Name"),
-    "UID" VARCHAR(255) NOT NULL REFERENCES "Orders"("UID"),
+    "ID" VARCHAR(255) NOT NULL,
     "Sum" DECIMAL NOT NULL,
     "Date" TIMESTAMP NOT NULL
 );
