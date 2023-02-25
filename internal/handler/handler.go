@@ -16,10 +16,10 @@ import (
 
 type Handler struct {
 	conf  *config.Config
-	logic usecase.UseCase
+	logic usecase.IUseCase
 }
 
-func NewHandler(cfg *config.Config, logic usecase.UseCase) *Handler {
+func NewHandler(cfg *config.Config, logic usecase.IUseCase) *Handler {
 	if cfg == nil {
 		panic("конфиг равен nil")
 	}
