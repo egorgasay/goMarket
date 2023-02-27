@@ -27,7 +27,7 @@ type Storage struct {
 
 type Type string
 
-type Orders []*schema.UserOrder
+type Orders []schema.UserOrder
 
 var ErrUsernameConflict = errors.New("username already exists")
 var ErrWrongPassword = errors.New("wrong password")

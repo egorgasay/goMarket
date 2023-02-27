@@ -39,6 +39,7 @@ func (uc UseCase) CheckID(host, cookie, id string) error {
 	if !Valid(ID) {
 		return storage.ErrBadID
 	}
+
 	err = uc.storage.CheckID(username, id)
 	if err != nil {
 		return err

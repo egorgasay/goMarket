@@ -116,7 +116,7 @@ func (s Storage) GetOrders(username string) (Orders, error) {
 			return nil, err
 		}
 
-		orders = append(orders, &order)
+		orders = append(orders, order)
 	}
 
 	err = rows.Err()
@@ -144,7 +144,6 @@ func (s Storage) GetBalance(username string) (schema.Balance, error) {
 }
 
 func (s Storage) UpdateOrder(username, id, status string, accrual float64) error {
-	log.Println(status, accrual)
 	if accrual == 0 {
 		prepare, err := s.DB.Prepare(changeOrerWithoutAccrual)
 		if err != nil {
