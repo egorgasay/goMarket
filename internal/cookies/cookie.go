@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var secretkey []byte
+var secretkey []byte = []byte("change me")
 
 func SetSecret(secret []byte) {
 	secretkey = secret
