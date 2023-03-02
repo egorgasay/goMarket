@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"gomarket/config"
 	handlers "gomarket/internal/handler"
-	"gomarket/internal/loyalty/config"
-	"gomarket/internal/loyalty/storage"
+	"gomarket/internal/repository"
 	"gomarket/internal/usecase"
 	"log"
 	"net/http"
@@ -18,7 +18,7 @@ import (
 func main() {
 	cfg := config.New()
 
-	storage, err := storage.Init(cfg.DBConfig)
+	storage, err := repository.New(cfg.DBConfig)
 	if err != nil {
 		log.Fatalf("Failed to initialize: %s", err.Error())
 	}

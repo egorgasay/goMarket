@@ -1,13 +1,10 @@
 package repository
 
 import (
-	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/egorgasay/dockerdb"
 	_ "github.com/mattn/go-sqlite3"
-	"gomarket/internal/storage"
+	"gomarket/internal/loyalty/storage"
 )
 
 type Config struct {
@@ -23,75 +20,9 @@ func New(cfg *Config) (storage.IStorage, error) {
 		panic("конфигурация задана некорректно")
 	}
 
-	if cfg.VDB == nil {
-		db, err := sql.Open("postgres", cfg.DataSourceCred)
-		if err != nil {
-			return nil, err
-		}
-
-		return storage.New(db, "file://internal/storage/migrations"), nil
-	}
-
-	cfg.DataSourcePath = "dockerDBs"
-	sqlitedb, err := upSqlite(cfg, "DockerDBs-schema.sql")
+	db, err := sql.Open("postgres", cfg.DataSourceCred)
 	if err != nil {
 		return nil, err
 	}
-
-	stmt, err := sqlitedb.Prepare("SELECT id, connectionString FROM DockerDBs WHERE name = ?")
-	if err != nil {
-		return nil, err
-	}
-
-	row := stmt.QueryRow(cfg.Name)
-
-	err = row.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	err = row.Scan(&cfg.VDB.ID, &cfg.DataSourceCred)
-	if err != sql.ErrNoRows && err != nil {
-		return nil, err
-	}
-
-	ctx := context.TODO()
-	err = cfg.VDB.Run(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to run docker storage %w", err)
-	}
-
-	if errors.Is(err, sql.ErrNoRows) {
-		stmt, err := sqlitedb.Prepare("INSERT INTO DockerDBs VALUES (?, ?, ?)")
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = stmt.Exec(cfg.Name, cfg.VDB.ID, cfg.DataSourceCred)
-		if err != nil {
-			return nil, err
-		}
-	}
-	sqlitedb.Close()
-
-	return storage.New(cfg.VDB.DB, "file://internal/storage/migrations"), nil
-}
-
-func upSqlite(cfg *Config, schema string) (*sql.DB, error) {
-	exists := storage.IsDBSqliteExist(cfg.DataSourcePath)
-
-	db, err := sql.Open("sqlite3", cfg.DataSourcePath)
-	if err != nil {
-		return nil, err
-	}
-
-	// use migrations instead of this approach
-	if !exists {
-		err = storage.InitDatabase(db, schema)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return db, nil
+	return storage.New(db, "file://internal/loyalty/storage/migrations"), nil
 }
