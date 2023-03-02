@@ -197,15 +197,19 @@ func (s Storage) Withdraw(username string, amount float64, orderID string) error
 		return err
 	}
 
-	var isEnoughMoney bool
+	var isEnoughMoney int
 	err = row.Scan(&isEnoughMoney)
 	if err != nil {
 		return err
 	}
 
-	if !isEnoughMoney {
+	if isEnoughMoney == 2 {
 		return ErrNotEnoughMoney
 	}
+
+	//if isEnoughMoney == 3 {
+	//	return ErrWrongOrderID
+	//}
 
 	prepareDraw, err := s.DB.Prepare(drawBonuses)
 	if err != nil {
@@ -230,7 +234,7 @@ func (s Storage) Withdraw(username string, amount float64, orderID string) error
 	return nil
 }
 
-func (s Storage) GetWithdrawals(username string) ([]*schema.Withdrawn, error) {
+func (s Storage) GetWithdrawals(username string) ([]schema.Withdrawn, error) {
 	prepare, err := s.DB.Prepare(getWithdrawals)
 	if err != nil {
 		return nil, err
@@ -246,7 +250,7 @@ func (s Storage) GetWithdrawals(username string) ([]*schema.Withdrawn, error) {
 		return nil, err
 	}
 
-	var withdrawals = make([]*schema.Withdrawn, 0)
+	var withdrawals = make([]schema.Withdrawn, 0)
 	for rows.Next() {
 		var withdrawal schema.Withdrawn
 		err = rows.Scan(&withdrawal.Order, &withdrawal.Sum, &withdrawal.ProcessedAt)
@@ -254,7 +258,7 @@ func (s Storage) GetWithdrawals(username string) ([]*schema.Withdrawn, error) {
 			return nil, err
 		}
 
-		withdrawals = append(withdrawals, &withdrawal)
+		withdrawals = append(withdrawals, withdrawal)
 	}
 
 	if len(withdrawals) == 0 {

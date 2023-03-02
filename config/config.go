@@ -60,7 +60,6 @@ func New() *Config {
 	var ddb *dockerdb.VDB
 
 	if *f.dsn == "" {
-		log.Println("HERE!!!")
 		ctx := context.TODO()
 
 		cfg := dockerdb.CustomDB{
