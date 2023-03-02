@@ -230,7 +230,7 @@ func (s Storage) Withdraw(username string, amount float64, orderID string) error
 	return nil
 }
 
-func (s Storage) GetWithdrawals(username string) ([]schema.Withdrawn, error) {
+func (s Storage) GetWithdrawals(username string) ([]*schema.Withdrawn, error) {
 	prepare, err := s.DB.Prepare(getWithdrawals)
 	if err != nil {
 		return nil, err
@@ -246,7 +246,7 @@ func (s Storage) GetWithdrawals(username string) ([]schema.Withdrawn, error) {
 		return nil, err
 	}
 
-	var withdrawals = make([]schema.Withdrawn, 0)
+	var withdrawals = make([]*schema.Withdrawn, 0)
 	for rows.Next() {
 		var withdrawal schema.Withdrawn
 		err = rows.Scan(&withdrawal.Order, &withdrawal.Sum, &withdrawal.ProcessedAt)
@@ -254,7 +254,7 @@ func (s Storage) GetWithdrawals(username string) ([]schema.Withdrawn, error) {
 			return nil, err
 		}
 
-		withdrawals = append(withdrawals, withdrawal)
+		withdrawals = append(withdrawals, &withdrawal)
 	}
 
 	if len(withdrawals) == 0 {
