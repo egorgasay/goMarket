@@ -4,12 +4,10 @@ import (
 	"context"
 	"github.com/labstack/echo"
 	"gomarket/internal/market/config"
+	"gomarket/internal/market/cookies"
 	"gomarket/internal/market/usecase"
 	"log"
 	"net/http"
-	"strconv"
-	"sync"
-	"time"
 )
 
 type Handler struct {
@@ -18,9 +16,6 @@ type Handler struct {
 }
 
 type H map[string]interface{}
-
-var lastUID int64 = 0
-var idMu = &sync.Mutex{}
 
 func NewHandler(cfg *config.Config, logic usecase.IUseCase) *Handler {
 	if cfg == nil {
@@ -34,23 +29,13 @@ func (h Handler) GetMain(c echo.Context) error {
 	ctx := context.TODO()
 	cookie, _ := c.Cookie("session")
 	if cookie == nil {
-		log.Println("Setting new cookie...")
-		idMu.Lock()
-		lastUID++
-		var uid = lastUID
-		idMu.Unlock()
-
-		fid := strconv.FormatInt(uid, 10)
-		cookie = new(http.Cookie)
-		cookie.Name = "session"
-		cookie.Value = fid
-		cookie.Expires = time.Now().Add(24 * time.Hour * 365)
+		cookie = cookies.SetCookie()
 		c.SetCookie(cookie)
-		log.Println("cookie:", cookie)
+		log.Println(cookie.Value)
 
 		err := h.logic.CreateAnonUser(ctx, cookie.Value)
 		if err != nil {
-			log.Println("mongo:", err)
+			log.Println("ErrCreateAnonUser:", err)
 			err = c.Render(http.StatusOK, "main_page.html", H{"error": err})
 			if err != nil {
 				log.Println(err)
@@ -60,19 +45,85 @@ func (h Handler) GetMain(c echo.Context) error {
 		}
 	}
 
-	balance, err := h.logic.GetBalance(ctx, cookie.Value)
+	items, err := h.logic.GetItems(ctx)
 	if err != nil {
 		err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
+		if err != nil {
+			log.Println("GetItems:", err)
+		}
+		return err
+	}
+
+	if id := c.Request().URL.Query().Get("id"); id != "" {
+		err = h.logic.Buy(ctx, cookie.Value, id)
+		if err != nil {
+			log.Println("Buy", err)
+			err = c.Render(http.StatusOK, "main_page.html", H{"error": err})
+			if err != nil {
+				log.Println(err)
+				return err
+			}
+			return err
+		}
+
+		items, err = h.logic.GetItems(ctx)
+		if err != nil {
+			err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
+			if err != nil {
+				log.Println("GetItems:", err)
+			}
+			return err
+		}
+
+		balance, err := h.logic.GetBalance(ctx, cookie.Value)
+		if err != nil {
+			err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
+			if err != nil {
+				log.Println("GetBalance:", err)
+			}
+			return err
+		}
+
+		err = c.Render(http.StatusOK, "main_page.html", H{
+			"Balance": balance.Current,
+			"Bonuses": balance.Bonuses,
+			"Items":   items,
+		})
 		if err != nil {
 			log.Println(err)
 		}
 		return err
 	}
 
-	err = c.Render(http.StatusOK, "main_page.html", H{"Balance": balance.Current,
-		"Bonuses": balance.Bonuses})
+	balance, err := h.logic.GetBalance(ctx, cookie.Value)
+	if err != nil {
+		err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
+		if err != nil {
+			log.Println("GetBalance:", err)
+		}
+		return err
+	}
+
+	items, err = h.logic.GetItems(ctx)
+	if err != nil {
+		err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
+		if err != nil {
+			log.Println("GetItems:", err)
+		}
+		return err
+	}
+
+	err = c.Render(http.StatusOK, "main_page.html", H{
+		"Balance": balance.Current,
+		"Bonuses": balance.Bonuses,
+		"Items":   items,
+	})
 	if err != nil {
 		log.Println(err)
 	}
 	return err
 }
+
+//func (h Handler) IDInterceptor(c echo.Context) error {
+//	c.Request().URL.
+//}

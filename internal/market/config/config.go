@@ -2,7 +2,7 @@ package config
 
 import (
 	"flag"
-	"gomarket/internal/market/cookies"
+	"gomarket/internal/loyalty/cookies"
 	"gomarket/internal/market/storage"
 	"os"
 )

@@ -14,10 +14,12 @@ type IStorage interface {
 	CreateUser(login, passwd string) error
 	CheckPassword(login, passwd string) error
 	GetBalance(ctx context.Context, cookie string) (schema.BalanceMarket, error)
+	GetItems(ctx context.Context) ([]schema.Item, error)
+	Buy(ctx context.Context, cookie string, id string) error
 }
 
 type Storage struct {
-	c *mongo.Collection
+	db *mongo.Database
 }
 
 type Type string
@@ -30,7 +32,6 @@ var ErrNotEnoughMoney = errors.New("insufficient funds for payment")
 type Config struct {
 	DriverName     Type
 	DataSourceCred string
-	DataSourcePath string
 	Name           string
 }
 
@@ -45,7 +46,7 @@ func Init(cfg *Config) (IStorage, error) {
 	}
 
 	dao := &Storage{
-		c: client.Database("core").Collection("customers"),
+		db: client.Database("test"),
 	}
 
 	return dao, nil

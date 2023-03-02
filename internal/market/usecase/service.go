@@ -16,6 +16,8 @@ type IUseCase interface {
 	CreateUser(login, passwd string) error
 	CheckPassword(login, passwd string) error
 	GetBalance(ctx context.Context, cookie string) (schema.BalanceMarket, error)
+	GetItems(ctx context.Context) ([]schema.Item, error)
+	Buy(ctx context.Context, cookie string, id string) error
 }
 
 func New(storage storage.IStorage) UseCase {

@@ -12,25 +12,24 @@
 <header>
  <img class="headerimg" src=""></header>
 <main>
-  <div id="container1"class="container1">
+  {{if .error}}<center>{{.error}}</center>{{end}}
+  <div id="container0" class="container1">
     <h3>Balance: {{.Balance}}</h3>
     <h4>Bonuses: {{.Bonuses}}</h4>
-  <img class="containerimg" src="/static/img/burn1.png">
-    <h3>White</h3>
-    <h4>1700</h4>
   </div>
-<!--  <div id="container2" style="float:top;">-->
-<!--  <img class="containerimg" src="/static/img/logo.png">-->
-<!--&lt;!&ndash;    <h3>Item 1</h3>&ndash;&gt;-->
-<!--&lt;!&ndash;    <h4>Price</h4>&ndash;&gt;-->
-<!--  </div>-->
-  <div id="container3" class="container1">
-  <img class="containerimg" src="/static/img/burn22.png">
-    <h3>Black</h3>
-    <h4>1950</h4>
+  {{ range $key, $value := .Items }}
+  <div class="container1">
+  <img class="containerimg" src="/static/img/{{$value.ImagePath}}">
+    <h3>{{$value.Name}}</h3>
+    <h4>{{$value.Price}}$</h4>
+    <h4>there are only {{$value.Count}} left </h4>
+    <center>
+    <a href="/?id={{$value.ID}}" >
+      <button type="submit">buy this one and enjoy ur life</button>
+    </a>
+    </center>
   </div>
+  {{ end }}
 </main>
-<!-- partial -->
-  
 </body>
 </html>
