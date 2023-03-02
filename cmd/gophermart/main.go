@@ -1,12 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"gomarket/internal/loyalty/config"
-	handlers "gomarket/internal/loyalty/handler"
-	"gomarket/internal/loyalty/storage"
-	"gomarket/internal/loyalty/usecase"
+	"gomarket/config"
+	handlers "gomarket/internal/handler"
+	"gomarket/internal/repository"
+	"gomarket/internal/usecase"
 	"log"
 	"net/http"
 	"os"
@@ -17,12 +18,12 @@ import (
 func main() {
 	cfg := config.New()
 
-	repo, err := storage.Init(cfg.DBConfig)
+	storage, err := repository.New(cfg.DBConfig)
 	if err != nil {
 		log.Fatalf("Failed to initialize: %s", err.Error())
 	}
 
-	logic := usecase.New(repo)
+	logic := usecase.New(storage)
 	router := chi.NewRouter()
 	h := handlers.NewHandler(cfg, logic)
 	router.Use(middleware.Logger)
@@ -31,9 +32,9 @@ func main() {
 	router.Group(h.PublicRoutes)
 	router.Group(h.PrivateRoutes)
 
-	// TODO: router.Use(gzip.Gzip(gzip.BestSpeed))
+	//router.Use(gzip.Gzip(gzip.BestSpeed))
 	go func() {
-		log.Println("Stating loyalty: " + cfg.Host)
+		fmt.Println("Stating server: " + cfg.Host)
 		log.Fatal(http.ListenAndServe(cfg.Host, router))
 	}()
 
@@ -41,5 +42,5 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
-	log.Println("Shutdown loyalty ...")
+	log.Println("Shutdown Server ...")
 }
