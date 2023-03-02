@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	"gomarket/internal/loyalty/schema"
+	"gomarket/internal/schema"
 	"log"
 )
 
@@ -18,7 +18,7 @@ type IStorage interface {
 	GetBalance(username string) (schema.Balance, error)
 	UpdateOrder(username, id, status string, accrual float64) error
 	Withdraw(username string, amount float64, orderID string) error
-	GetWithdrawals(username string) ([]*schema.Withdrawn, error)
+	GetWithdrawals(username string) ([]schema.Withdrawn, error)
 }
 
 type Storage struct {
@@ -40,26 +40,6 @@ var ErrNotEnoughMoney = errors.New("insufficient funds for payment")
 var ErrNoWithdrawals = errors.New("user don't have withdrawals operations")
 
 //var ErrWrongOrderID = errors.New("wrong order id")
-
-type Config struct {
-	DriverName     Type
-	DataSourceCred string
-	DataSourcePath string
-	Name           string
-}
-
-func Init(cfg *Config) (IStorage, error) {
-	if cfg == nil {
-		panic("конфигурация задана некорректно")
-	}
-
-	db, err := sql.Open("postgres", cfg.DataSourceCred)
-	if err != nil {
-		return nil, err
-	}
-
-	return New(db, "file://internal/loyalty/storage/migrations"), nil
-}
 
 func New(db *sql.DB, pathToMigrations string) IStorage {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
