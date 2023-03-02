@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"github.com/egorgasay/dockerdb"
 	_ "github.com/mattn/go-sqlite3"
-	"gomarket/internal/loyalty/storage"
+	"gomarket/internal/storage"
 )
 
 type Config struct {
@@ -15,7 +15,7 @@ type Config struct {
 	Name           string
 }
 
-func New(cfg *storage.Config) (storage.IStorage, error) {
+func New(cfg *Config) (storage.IStorage, error) {
 	if cfg == nil {
 		panic("конфигурация задана некорректно")
 	}
@@ -24,5 +24,6 @@ func New(cfg *storage.Config) (storage.IStorage, error) {
 	if err != nil {
 		return nil, err
 	}
-	return storage.New(db, "file://internal/loyalty/storage/migrations"), nil
+
+	return storage.New(db, "file://internal/storage/migrations"), nil
 }

@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"gomarket/internal/loyalty/storage"
+	"gomarket/internal/storage"
 )
 
 type UseCase struct {

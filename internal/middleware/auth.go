@@ -11,7 +11,7 @@ func AuthRequired(next http.Handler) http.Handler {
 		cookie, err := cookies.Get(r)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s" }`, err)))
+			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return
 		}
 
