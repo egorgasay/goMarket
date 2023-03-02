@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gomarket/internal/market/schema"
 )
 
@@ -21,7 +22,7 @@ func (s Storage) CreateAnonUser(ctx context.Context, user schema.Customer) error
 }
 
 func (s Storage) GetBalance(ctx context.Context, cookie string) (schema.BalanceMarket, error) {
-	var filter = bson.D{{"cookie", cookie}}
+	var filter = bson.D{primitive.E{Key: "cookie", Value: cookie}}
 	var balance schema.BalanceMarket
 	var err = s.c.FindOne(ctx, filter).Decode(&balance)
 	return balance, err
