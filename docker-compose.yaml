@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  market:
+    image: golang:1.19-alpine
+    volumes:
+      - .:/go/src/go-with-compose
+    working_dir: /go/src/go-with-compose
+    command: go run cmd/market/main.go
+    depends_on:
+      - market_db
+    environment:
+      DATABASE_URI: "mongodb://market_db:27017"
+      KEY: "CHANGE ME"
+    ports:
+      - "8080:8080"
+
+  loyalty:
+    image: golang:1.19-alpine
+    volumes:
+      - .:/go/src/go-with-compose
+    working_dir: /go/src/go-with-compose
+    command: go run cmd/gophermart/main.go
+    depends_on:
+      - loyalty_db
+    environment:
+      DATABASE_URI: "host=loyalty_db port=5432 user=admin password=admin dbname=admin sslmode=disable"
+    ports:
+      - "8000:8080"
+
+  market_db:
+    image: mongo:4.2.8
+    volumes:
+      - .data:/data/db
+      - .data/conf:/data/configdb
+
+  loyalty_db:
+    image: postgres:13.3
+    environment:
+      POSTGRES_DB: "admin"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"

@@ -5,8 +5,8 @@
 package mock_storage
 
 import (
-	schema "gomarket/internal/schema"
-	storage "gomarket/internal/storage"
+	schema "gomarket/internal/loyalty/schema"
+	storage "gomarket/internal/loyalty/storage"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
