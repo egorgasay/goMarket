@@ -18,7 +18,7 @@ type IStorage interface {
 	GetBalance(username string) (schema.Balance, error)
 	UpdateOrder(username, id, status string, accrual float64) error
 	Withdraw(username string, amount float64, orderID string) error
-	GetWithdrawals(username string) ([]schema.Withdrawn, error)
+	GetWithdrawals(username string) ([]*schema.Withdrawn, error)
 }
 
 type Storage struct {
