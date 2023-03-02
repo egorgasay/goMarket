@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"context"
-	"gomarket/internal/schema"
+	"gomarket/internal/market/schema"
 )
 
 func (uc UseCase) CreateUser(login, passwd string) error {
@@ -14,7 +14,9 @@ func (uc UseCase) CheckPassword(login, passwd string) error {
 }
 
 func (uc UseCase) GetBalance(ctx context.Context, cookie string) (schema.BalanceMarket, error) {
-	return uc.storage.GetBalance(ctx, cookie)
+	balance, err := uc.storage.GetBalance(ctx, cookie)
+	balance.Bonuses = 0 // TODO: Connect with loyalty service
+	return balance, err
 }
 
 func (uc UseCase) CreateAnonUser(ctx context.Context, cookie string) error {

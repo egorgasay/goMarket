@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	"gomarket/internal/schema"
+	"gomarket/internal/loyalty/schema"
 	"log"
 )
 

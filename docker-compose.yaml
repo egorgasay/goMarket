@@ -10,7 +10,7 @@ services:
     depends_on:
       - market_db
     environment:
-      DATABASE_URI: "mongodb://user:pass@market_db"
+      DATABASE_URI: "mongodb://market_db:27017"
     ports:
       - "8080:8080"
 
@@ -29,12 +29,9 @@ services:
 
   market_db:
     image: mongo:4.2.8
-    environment:
-      - MONGODB_INITDB_ROOT_USERNAME=user
-      - MONGODB_INITDB_ROOT_PASSWORD=pass
     volumes:
-      - .:/data/db
-      - .data:/data/configdb
+      - .data:/data/db
+      - .data/conf:/data/configdb
 
   loyalty_db:
     image: postgres:13.3

@@ -4,7 +4,7 @@ import (
 	"context"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"go.mongodb.org/mongo-driver/bson"
-	"gomarket/internal/schema"
+	"gomarket/internal/market/schema"
 )
 
 func (s Storage) CreateUser(login, passwd string) error {

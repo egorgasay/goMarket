@@ -6,7 +6,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgerrcode"
 	"github.com/lib/pq"
-	"gomarket/internal/schema"
+	"gomarket/internal/loyalty/schema"
 	"log"
 	"sync"
 )

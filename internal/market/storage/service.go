@@ -5,7 +5,7 @@ import (
 	"errors"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"gomarket/internal/schema"
+	"gomarket/internal/market/schema"
 )
 
 //go:generate mockgen -source=service.go -destination=mocks/mock.go
@@ -21,8 +21,6 @@ type Storage struct {
 }
 
 type Type string
-
-type Orders []schema.UserOrder
 
 var ErrUsernameConflict = errors.New("username already exists")
 var ErrWrongPassword = errors.New("wrong password")

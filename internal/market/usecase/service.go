@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"context"
+	"gomarket/internal/market/schema"
 	"gomarket/internal/market/storage"
-	"gomarket/internal/schema"
 )
 
 type UseCase struct {
