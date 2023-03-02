@@ -1,9 +1,7 @@
 package config
 
 import (
-	"context"
 	"flag"
-	"github.com/egorgasay/dockerdb"
 	"gomarket/internal/cookies"
 	"gomarket/internal/repository"
 	"log"
@@ -31,7 +29,6 @@ func init() {
 
 type Config struct {
 	Host                 string
-	BaseURL              string
 	Key                  []byte
 	DBConfig             *repository.Config
 	AccrualSystemAddress string
@@ -57,29 +54,8 @@ func New() *Config {
 		cookies.SetSecret([]byte(key))
 	}
 
-	var ddb *dockerdb.VDB
-
 	if *f.dsn == "" {
-		ctx := context.TODO()
-
-		cfg := dockerdb.CustomDB{
-			DB: dockerdb.DB{
-				Name:     "vdb9",
-				User:     "admin",
-				Password: "admin",
-			},
-			Port: "12587",
-			Vendor: dockerdb.Vendor{
-				Name:  dockerdb.Postgres,
-				Image: "postgres", // TODO: add dockerdb.Postgres15 as image into dockerdb package
-			},
-		}
-
-		var err error
-		ddb, err = dockerdb.New(ctx, cfg)
-		if err != nil {
-			log.Fatal(err)
-		}
+		log.Println("Here!!")
 	}
 
 	return &Config{
@@ -88,7 +64,6 @@ func New() *Config {
 		DBConfig: &repository.Config{
 			DriverName:     "postgres",
 			DataSourceCred: *f.dsn,
-			VDB:            ddb,
 			Name:           "vdb",
 		},
 		AccrualSystemAddress: *f.asa,
