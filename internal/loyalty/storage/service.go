@@ -41,6 +41,25 @@ var ErrNoWithdrawals = errors.New("user don't have withdrawals operations")
 
 //var ErrWrongOrderID = errors.New("wrong order id")
 
+type Config struct {
+	DriverName     string
+	DataSourceCred string
+	Name           string
+}
+
+func Init(cfg *Config) (IStorage, error) {
+	if cfg == nil {
+		return nil, errors.New("empty config")
+	}
+
+	db, err := sql.Open(cfg.DriverName, cfg.DataSourceCred)
+	if err != nil {
+		return nil, err
+	}
+
+	return New(db, "file://internal/loyalty/storage/migrations"), nil
+}
+
 func New(db *sql.DB, pathToMigrations string) IStorage {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
