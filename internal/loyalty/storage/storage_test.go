@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/egorgasay/dockerdb"
-	"gomarket/internal/schema"
+	"gomarket/internal/loyalty/schema"
 	"log"
 	"os"
 	"reflect"
