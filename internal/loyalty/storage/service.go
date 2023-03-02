@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	"gomarket/internal/schema"
+	"gomarket/internal/loyalty/schema"
 	"log"
 )
 
@@ -55,7 +55,7 @@ func Init(cfg *Config) (IStorage, error) {
 		return nil, err
 	}
 
-	return New(db, "file://internal/storage/migrations"), nil
+	return New(db, "file://internal/loyalty/storage/migrations"), nil
 }
 
 func New(db *sql.DB, pathToMigrations string) IStorage {

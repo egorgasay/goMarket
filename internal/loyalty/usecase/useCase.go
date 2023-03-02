@@ -3,8 +3,8 @@ package usecase
 import (
 	"encoding/hex"
 	"encoding/json"
-	"gomarket/internal/schema"
-	"gomarket/internal/storage"
+	"gomarket/internal/loyalty/schema"
+	"gomarket/internal/loyalty/storage"
 	"io"
 	"log"
 	"net/http"

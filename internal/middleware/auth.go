@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"gomarket/internal/cookies"
+	"gomarket/internal/loyalty/cookies"
 	"net/http"
 )
 
