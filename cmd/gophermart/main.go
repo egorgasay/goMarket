@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"gomarket/config"
 	handlers "gomarket/internal/handler"
-	"gomarket/internal/repository"
+	"gomarket/internal/storage"
 	"gomarket/internal/usecase"
 	"log"
 	"net/http"
@@ -18,12 +18,12 @@ import (
 func main() {
 	cfg := config.New()
 
-	storage, err := repository.New(cfg.DBConfig)
+	repo, err := storage.Init(cfg.DBConfig)
 	if err != nil {
 		log.Fatalf("Failed to initialize: %s", err.Error())
 	}
 
-	logic := usecase.New(storage)
+	logic := usecase.New(repo)
 	router := chi.NewRouter()
 	h := handlers.NewHandler(cfg, logic)
 	router.Use(middleware.Logger)

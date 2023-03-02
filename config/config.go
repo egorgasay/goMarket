@@ -3,7 +3,7 @@ package config
 import (
 	"flag"
 	"gomarket/internal/cookies"
-	"gomarket/internal/repository"
+	"gomarket/internal/storage"
 	"log"
 	"os"
 )
@@ -30,7 +30,7 @@ func init() {
 type Config struct {
 	Host                 string
 	Key                  []byte
-	DBConfig             *repository.Config
+	DBConfig             *storage.Config
 	AccrualSystemAddress string
 }
 
@@ -61,7 +61,7 @@ func New() *Config {
 	return &Config{
 		Host: *f.host,
 		Key:  []byte("CHANGE ME"),
-		DBConfig: &repository.Config{
+		DBConfig: &storage.Config{
 			DriverName:     "postgres",
 			DataSourceCred: *f.dsn,
 			Name:           "vdb",
