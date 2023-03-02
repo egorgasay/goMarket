@@ -15,7 +15,7 @@ type Config struct {
 	Name           string
 }
 
-func New(cfg *Config) (storage.IStorage, error) {
+func New(cfg *storage.Config) (storage.IStorage, error) {
 	if cfg == nil {
 		panic("конфигурация задана некорректно")
 	}
