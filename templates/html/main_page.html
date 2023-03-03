@@ -13,10 +13,8 @@
  <img class="headerimg" src=""></header>
 <main>
   {{if .error}}<center>{{.error}}</center>{{end}}
-  <div id="container0" class="container1">
-  </div>
-  <center>
   {{ range $key, $value := .Items }}
+  <center>
   <div class="container1">
   <img class="containerimg" src="/static/img/{{$value.ImagePath}}">
     <h3>{{$value.Name}}</h3>
@@ -32,8 +30,6 @@
   </div>
   </center>
   {{ end }}
-  <br>
-  <br>
 </main>
 </body>
 </html>

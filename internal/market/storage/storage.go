@@ -77,10 +77,26 @@ func (s Storage) Buy(ctx context.Context, cookie string, id string) error {
 	if balance.Bonuses+balance.Current < item.Price {
 		return ErrNotEnoughMoney
 	}
+	if balance.Bonuses > 0 {
+		item.Price = item.Price - balance.Bonuses
+		// TODO: CALL LOYALTY TO CHANGE BONUS BALANCE
+	}
 
 	filter = bson.D{primitive.E{Key: "_id", Value: ID}}
 	update := bson.D{primitive.E{Key: "$set", Value: bson.D{
 		primitive.E{Key: "count", Value: item.Count - 1},
+	}}}
+
+	_, err = c.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	c = s.db.Collection("customers")
+
+	filter = bson.D{primitive.E{Key: "cookie", Value: cookie}}
+	update = bson.D{primitive.E{Key: "$set", Value: bson.D{
+		primitive.E{Key: "balance", Value: balance.Current - item.Price},
 	}}}
 
 	r, err := c.UpdateOne(ctx, filter, update)

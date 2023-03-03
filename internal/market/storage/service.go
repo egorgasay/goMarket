@@ -48,5 +48,8 @@ func Init(cfg *Config) (IStorage, error) {
 		db: client.Database("test"),
 	}
 
+
+	dao.db.Collection("customers").Drop(ctx)
+
 	return dao, nil
 }
