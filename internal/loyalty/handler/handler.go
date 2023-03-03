@@ -3,14 +3,14 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/go-chi/httplog"
 	"gomarket/internal/loyalty/config"
 	"gomarket/internal/loyalty/cookies"
 	"gomarket/internal/loyalty/schema"
 	"gomarket/internal/loyalty/storage"
 	"gomarket/internal/loyalty/usecase"
+	"gomarket/pkg/bettererror"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -33,7 +33,7 @@ func BindJSON(w http.ResponseWriter, r *http.Request, obj any) error {
 	err := decoder.Decode(obj)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+		w.Write(bettererror.New(err).SetAppLayer(bettererror.Handler).JSON())
 		return err
 	}
 
@@ -51,14 +51,15 @@ func (h Handler) PostRegister() http.HandlerFunc {
 
 		err = h.logic.CreateUser(cred.Login, cred.Password)
 		if err != nil {
-			w.Header().Set("err", err.Error())
 			if err == storage.ErrUsernameConflict {
 				w.WriteHeader(http.StatusConflict)
-				w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+				w.Write(bettererror.New(err).SetAppLayer(bettererror.Logic).JSON())
 				return
 			}
+			oplog := httplog.LogEntry(r.Context())
+			oplog.Error().Msg(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
 		}
 
@@ -79,12 +80,13 @@ func (h Handler) PostLogin() http.HandlerFunc {
 		err = h.logic.CheckPassword(cred.Login, cred.Password)
 		if err == storage.ErrWrongPassword {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Logic).JSON())
 			return
 		} else if err != nil {
-			log.Println(err)
+			oplog := httplog.LogEntry(r.Context())
+			oplog.Error().Msg(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
 		}
 
@@ -98,40 +100,41 @@ func (h Handler) PostOrders() http.HandlerFunc {
 		cookie, err := cookies.Get(r)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Handler).JSON())
 			return
 		}
 
 		id, err := io.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Handler).JSON())
 			return
 		}
 
 		err = h.logic.CheckID(h.conf.AccrualSystemAddress, cookie, string(id))
 		if errors.Is(err, storage.ErrCreatedByThisUser) {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(fmt.Sprintf(`{"msg": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Logic).JSON())
 			return
 		}
 
 		if errors.Is(err, storage.ErrCreatedByAnotherUser) {
 			w.WriteHeader(http.StatusConflict)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Logic).JSON())
 			return
 		}
 
 		if errors.Is(err, storage.ErrBadID) {
 			w.WriteHeader(http.StatusUnprocessableEntity)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Logic).JSON())
 			return
 		}
 
 		if err != nil {
-			log.Println(err)
+			oplog := httplog.LogEntry(r.Context())
+			oplog.Error().Msg(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
 		}
 
@@ -144,23 +147,25 @@ func (h Handler) GetUserOrders() http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		cookie, err := cookies.Get(r)
 		if err != nil {
-			log.Println(err)
+			oplog := httplog.LogEntry(r.Context())
+			oplog.Error().Msg(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Handler).JSON())
 			return
 		}
 
 		orders, err := h.logic.GetOrders(cookie)
 		if errors.Is(err, storage.ErrNoResult) {
 			w.WriteHeader(http.StatusNoContent)
-			w.Write([]byte(fmt.Sprintf(`{"msg": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Logic).JSON())
 			return
 		}
 
 		if err != nil {
-			log.Println(err)
+			oplog := httplog.LogEntry(r.Context())
+			oplog.Error().Msg(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
 		}
 
@@ -175,15 +180,16 @@ func (h Handler) GetBalance() http.HandlerFunc {
 		cookie, err := cookies.Get(r)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Handler).JSON())
 			return
 		}
 
 		balance, err := h.logic.GetBalance(cookie)
 		if err != nil {
-			log.Println(err)
+			oplog := httplog.LogEntry(r.Context())
+			oplog.Error().Msg(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
 		}
 
@@ -198,7 +204,7 @@ func (h Handler) PostWithdraw() http.HandlerFunc {
 		cookie, err := cookies.Get(r)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Handler).JSON())
 			return
 		}
 
@@ -211,20 +217,21 @@ func (h Handler) PostWithdraw() http.HandlerFunc {
 		err = h.logic.DrawBonuses(cookie, withdrawn.Sum, withdrawn.Order)
 		if errors.Is(err, storage.ErrNotEnoughMoney) {
 			w.WriteHeader(http.StatusPaymentRequired)
-			w.Write([]byte(fmt.Sprintf(`{"msg": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Logic).JSON())
 			return
 		}
 
 		if errors.Is(err, storage.ErrBadID) {
 			w.WriteHeader(http.StatusUnprocessableEntity)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Logic).JSON())
 			return
 		}
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			log.Println(err)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			oplog := httplog.LogEntry(r.Context())
+			oplog.Error().Msg(err.Error())
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
 		}
 
@@ -238,21 +245,22 @@ func (h Handler) GetWithdrawals() http.HandlerFunc {
 		cookie, err := cookies.Get(r)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Handler).JSON())
 			return
 		}
 
 		withdrawals, err := h.logic.GetWithdrawals(cookie)
 		if errors.Is(err, storage.ErrNoWithdrawals) {
 			w.WriteHeader(http.StatusNoContent)
-			w.Write([]byte(fmt.Sprintf(`{"msg": "%s"}`, err)))
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Logic).JSON())
 			return
 		}
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			log.Println(err)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+			oplog := httplog.LogEntry(r.Context())
+			oplog.Error().Msg(err.Error())
+			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
 		}
 
