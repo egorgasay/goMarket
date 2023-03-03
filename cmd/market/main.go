@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/httplog"
 	"github.com/labstack/echo"
 	"gomarket/internal/market/config"
 	handlers "gomarket/internal/market/handler"
@@ -39,8 +40,13 @@ func main() {
 
 	logic := usecase.New(repo)
 	e := echo.New()
-	h := handlers.NewHandler(cfg, logic)
-	e.Use(echo.WrapMiddleware(middleware.Logger))
+
+	logger := httplog.NewLogger("loyalty", httplog.Options{
+		Concise: true,
+	})
+
+	h := handlers.NewHandler(cfg, logic, logger)
+	e.Use(echo.WrapMiddleware(httplog.RequestLogger(logger)))
 	e.Use(echo.WrapMiddleware(middleware.Recoverer))
 
 	t := &Template{
@@ -53,7 +59,7 @@ func main() {
 
 	// TODO: router.Use(gzip.Gzip(gzip.BestSpeed))
 	go func() {
-		log.Println("Stating market: " + cfg.Host)
+		logger.Info().Msg("Stating market: " + cfg.Host)
 		log.Fatal(http.ListenAndServe(cfg.Host, e))
 	}()
 
@@ -61,5 +67,5 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
-	log.Println("Shutdown market ...")
+	logger.Info().Msg("Shutdown market ...")
 }

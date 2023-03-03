@@ -13,6 +13,7 @@
  <img class="headerimg" src=""></header>
 <main>
   {{if .error}}<center>{{.error}}</center>{{end}}
+  {{if .Bought}}<center><p style="color: green;">you have successfully purchased a virtual item and have made your contribution to saving the planet. thank you!</p></center>{{end}}
   {{ range $key, $value := .Items }}
   <center>
   <div class="container1">

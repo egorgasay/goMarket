@@ -3,7 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"github.com/go-chi/httplog"
+	"github.com/rs/zerolog"
+	"gomarket/internal/logger"
 	"gomarket/internal/loyalty/config"
 	"gomarket/internal/loyalty/cookies"
 	"gomarket/internal/loyalty/schema"
@@ -15,16 +16,17 @@ import (
 )
 
 type Handler struct {
-	conf  *config.Config
-	logic usecase.IUseCase
+	conf   *config.Config
+	logic  usecase.IUseCase
+	logger logger.ILogger
 }
 
-func NewHandler(cfg *config.Config, logic usecase.IUseCase) *Handler {
+func NewHandler(cfg *config.Config, logic usecase.IUseCase, loggerInstance zerolog.Logger) *Handler {
 	if cfg == nil {
 		panic("конфиг равен nil")
 	}
 
-	return &Handler{conf: cfg, logic: logic}
+	return &Handler{conf: cfg, logic: logic, logger: logger.New(loggerInstance)}
 }
 
 func BindJSON(w http.ResponseWriter, r *http.Request, obj any) error {
@@ -56,8 +58,8 @@ func (h Handler) PostRegister() http.HandlerFunc {
 				w.Write(bettererror.New(err).SetAppLayer(bettererror.Logic).JSON())
 				return
 			}
-			oplog := httplog.LogEntry(r.Context())
-			oplog.Error().Msg(err.Error())
+
+			h.logger.Warn(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
@@ -83,8 +85,7 @@ func (h Handler) PostLogin() http.HandlerFunc {
 			w.Write(bettererror.New(err).SetAppLayer(bettererror.Logic).JSON())
 			return
 		} else if err != nil {
-			oplog := httplog.LogEntry(r.Context())
-			oplog.Error().Msg(err.Error())
+			h.logger.Warn(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
@@ -131,8 +132,7 @@ func (h Handler) PostOrders() http.HandlerFunc {
 		}
 
 		if err != nil {
-			oplog := httplog.LogEntry(r.Context())
-			oplog.Error().Msg(err.Error())
+			h.logger.Warn(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
@@ -147,8 +147,7 @@ func (h Handler) GetUserOrders() http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		cookie, err := cookies.Get(r)
 		if err != nil {
-			oplog := httplog.LogEntry(r.Context())
-			oplog.Error().Msg(err.Error())
+			h.logger.Warn(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(bettererror.New(err).SetAppLayer(bettererror.Handler).JSON())
 			return
@@ -162,8 +161,7 @@ func (h Handler) GetUserOrders() http.HandlerFunc {
 		}
 
 		if err != nil {
-			oplog := httplog.LogEntry(r.Context())
-			oplog.Error().Msg(err.Error())
+			h.logger.Warn(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
@@ -186,8 +184,7 @@ func (h Handler) GetBalance() http.HandlerFunc {
 
 		balance, err := h.logic.GetBalance(cookie)
 		if err != nil {
-			oplog := httplog.LogEntry(r.Context())
-			oplog.Error().Msg(err.Error())
+			h.logger.Warn(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
@@ -229,8 +226,7 @@ func (h Handler) PostWithdraw() http.HandlerFunc {
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			oplog := httplog.LogEntry(r.Context())
-			oplog.Error().Msg(err.Error())
+			h.logger.Warn(err.Error())
 			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
 		}
@@ -258,8 +254,7 @@ func (h Handler) GetWithdrawals() http.HandlerFunc {
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			oplog := httplog.LogEntry(r.Context())
-			oplog.Error().Msg(err.Error())
+			h.logger.Warn(err.Error())
 			w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSON())
 			return
 		}
