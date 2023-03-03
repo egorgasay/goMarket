@@ -27,7 +27,6 @@ func main() {
 
 	logic := usecase.New(repo)
 	router := chi.NewRouter()
-	h := handlers.NewHandler(cfg, logic)
 
 	logger := httplog.NewLogger("loyalty", httplog.Options{
 		Concise: true,
@@ -35,6 +34,7 @@ func main() {
 	router.Use(httplog.RequestLogger(logger))
 	router.Use(middleware.Recoverer)
 
+	h := handlers.NewHandler(cfg, logic, logger)
 	router.Group(h.PublicRoutes)
 	router.Group(h.PrivateRoutes)
 
