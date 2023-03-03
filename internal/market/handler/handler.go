@@ -2,12 +2,14 @@ package handler
 
 import (
 	"context"
-	"github.com/labstack/echo"
 	"gomarket/internal/market/config"
 	"gomarket/internal/market/cookies"
+	"gomarket/internal/market/schema"
 	"gomarket/internal/market/usecase"
 	"log"
 	"net/http"
+
+	"github.com/labstack/echo"
 )
 
 type Handler struct {
@@ -23,6 +25,28 @@ func NewHandler(cfg *config.Config, logic usecase.IUseCase) *Handler {
 	}
 
 	return &Handler{conf: cfg, logic: logic}
+}
+
+func (h Handler) GetItemsAndBalance( ctx context.Context, c echo.Context, cookie string) ([]schema.Item, schema.BalanceMarket, error) {
+  items, err := h.logic.GetItems(ctx)
+	if err != nil {
+		err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
+		if err != nil {
+			log.Println("GetItems:", err)
+		}
+		return nil, schema.BalanceMarket{}, err
+	}
+
+	balance, err := h.logic.GetBalance(ctx, cookie)
+	if err != nil {
+		err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
+		if err != nil {
+			log.Println("GetBalance:", err)
+		}
+		return nil, schema.BalanceMarket{}, err
+	}
+
+  return items, balance, nil
 }
 
 func (h Handler) GetMain(c echo.Context) error {
@@ -45,17 +69,8 @@ func (h Handler) GetMain(c echo.Context) error {
 		}
 	}
 
-	items, err := h.logic.GetItems(ctx)
-	if err != nil {
-		err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
-		if err != nil {
-			log.Println("GetItems:", err)
-		}
-		return err
-	}
-
 	if id := c.Request().URL.Query().Get("id"); id != "" {
-		err = h.logic.Buy(ctx, cookie.Value, id)
+		err := h.logic.Buy(ctx, cookie.Value, id)
 		if err != nil {
 			log.Println("Buy", err)
 			err = c.Render(http.StatusOK, "main_page.html", H{"error": err})
@@ -66,23 +81,10 @@ func (h Handler) GetMain(c echo.Context) error {
 			return err
 		}
 
-		items, err = h.logic.GetItems(ctx)
-		if err != nil {
-			err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
-			if err != nil {
-				log.Println("GetItems:", err)
-			}
-			return err
-		}
-
-		balance, err := h.logic.GetBalance(ctx, cookie.Value)
-		if err != nil {
-			err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
-			if err != nil {
-				log.Println("GetBalance:", err)
-			}
-			return err
-		}
+		items, balance, err := h.GetItemsAndBalance(ctx, c, cookie.Value)
+    if err != nil {
+      return err
+    }
 
 		err = c.Render(http.StatusOK, "main_page.html", H{
 			"Balance": balance.Current,
@@ -95,23 +97,10 @@ func (h Handler) GetMain(c echo.Context) error {
 		return err
 	}
 
-	balance, err := h.logic.GetBalance(ctx, cookie.Value)
-	if err != nil {
-		err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
-		if err != nil {
-			log.Println("GetBalance:", err)
-		}
-		return err
-	}
-
-	items, err = h.logic.GetItems(ctx)
-	if err != nil {
-		err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
-		if err != nil {
-			log.Println("GetItems:", err)
-		}
-		return err
-	}
+	items, balance, err := h.GetItemsAndBalance(ctx, c, cookie.Value)
+  if err != nil {
+    return err
+  }
 
 	err = c.Render(http.StatusOK, "main_page.html", H{
 		"Balance": balance.Current,
@@ -123,7 +112,3 @@ func (h Handler) GetMain(c echo.Context) error {
 	}
 	return err
 }
-
-//func (h Handler) IDInterceptor(c echo.Context) error {
-//	c.Request().URL.
-//}

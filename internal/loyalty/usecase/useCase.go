@@ -53,6 +53,9 @@ func (uc UseCase) CheckID(host, cookie, id string) error {
 func (uc UseCase) updateStatus(username, host, id string) {
 	ticker := time.NewTicker(1 * time.Second)
 	status := ""
+	firstTime := true
+	accrual := 0.0
+
 	for status != "PROCESSED" && status != "INVALID" {
 		<-ticker.C
 		res, err := http.Get(host + "/api/orders/" + id)
@@ -87,12 +90,21 @@ func (uc UseCase) updateStatus(username, host, id string) {
 			continue
 		}
 
-		err = uc.storage.UpdateOrder(username, id, response.Status, response.Accrual)
-		if err != nil {
-			log.Println(err)
+		if firstTime {
+			err = uc.storage.UpdateOrder(username, id, "REGISTERED", response.Accrual)
+			if err != nil {
+				log.Println(err)
+			}
+			firstTime = false
+			accrual = response.Accrual
 		}
 
 		status = response.Status
+	}
+
+	err := uc.storage.UpdateOrder(username, id, status, accrual)
+	if err != nil {
+		log.Println(err)
 	}
 }
 

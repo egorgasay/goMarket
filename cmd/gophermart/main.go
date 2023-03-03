@@ -8,11 +8,14 @@ import (
 	handlers "gomarket/internal/loyalty/handler"
 	"gomarket/internal/loyalty/storage"
 	"gomarket/internal/loyalty/usecase"
+	middleware2 "gomarket/internal/middleware"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -26,7 +29,10 @@ func main() {
 	logic := usecase.New(repo)
 	router := chi.NewRouter()
 	h := handlers.NewHandler(cfg, logic)
-	router.Use(middleware.Logger)
+
+	logger := logrus.New()
+	loggingMiddleware := middleware2.NewLoggingMiddleware(logger)
+	router.Use(loggingMiddleware.Logging)
 	router.Use(middleware.Recoverer)
 
 	router.Group(h.PublicRoutes)

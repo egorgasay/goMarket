@@ -10,6 +10,7 @@ require (
 	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/lib/pq v1.10.7
+	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
 	go.mongodb.org/mongo-driver v1.7.0
 )

@@ -50,12 +50,13 @@ func (h Handler) PostRegister() http.HandlerFunc {
 		}
 
 		err = h.logic.CreateUser(cred.Login, cred.Password)
-		if err == storage.ErrUsernameConflict {
-			w.WriteHeader(http.StatusConflict)
-			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
-			return
-		} else if err != nil {
-			log.Println(err)
+		if err != nil {
+			w.Header().Set("err", err.Error())
+			if err == storage.ErrUsernameConflict {
+				w.WriteHeader(http.StatusConflict)
+				w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
+				return
+			}
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err)))
 			return

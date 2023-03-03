@@ -8,28 +8,32 @@
 </head>
 <body>
 <!-- partial:index.partial.html -->
-{{template "nav"}}
+{{template "nav" .}}
 <header>
  <img class="headerimg" src=""></header>
 <main>
   {{if .error}}<center>{{.error}}</center>{{end}}
   <div id="container0" class="container1">
-    <h3>Balance: {{.Balance}}</h3>
-    <h4>Bonuses: {{.Bonuses}}</h4>
   </div>
+  <center>
   {{ range $key, $value := .Items }}
   <div class="container1">
   <img class="containerimg" src="/static/img/{{$value.ImagePath}}">
     <h3>{{$value.Name}}</h3>
     <h4>{{$value.Price}}$</h4>
+    {{ if gt $value.Count 0 }}
     <h4>there are only {{$value.Count}} left </h4>
-    <center>
-    <a href="/?id={{$value.ID}}" >
+    <a href="/?id={{$value.ID}}">
       <button type="submit">buy this one and enjoy ur life</button>
     </a>
-    </center>
+    {{ else }}
+    <h4 style="color: red"> SOLD OUT </h4>
+    {{ end }}
   </div>
+  </center>
   {{ end }}
+  <br>
+  <br>
 </main>
 </body>
 </html>

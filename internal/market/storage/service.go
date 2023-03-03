@@ -3,9 +3,10 @@ package storage
 import (
 	"context"
 	"errors"
+	"gomarket/internal/market/schema"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"gomarket/internal/market/schema"
 )
 
 //go:generate mockgen -source=service.go -destination=mocks/mock.go
@@ -48,6 +49,10 @@ func Init(cfg *Config) (IStorage, error) {
 	dao := &Storage{
 		db: client.Database("test"),
 	}
-
+  
+  //var item = schema.Item{Name: "MYSTERY BOX", Price: 500, ImagePath: "logo.png", Count: 100}
+ //_, err = dao.db.Collection("items").InsertOne(ctx, item)
+  //log.Println(err)
+  
 	return dao, nil
 }

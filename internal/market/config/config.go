@@ -57,7 +57,7 @@ func New() *Config {
 		Host: *f.host,
 		Key:  []byte("CHANGE ME"),
 		DBConfig: &storage.Config{
-			DriverName:     "postgres",
+			DriverName:     "mongo",
 			DataSourceCred: *f.dsn,
 			Name:           "vdb",
 		},
