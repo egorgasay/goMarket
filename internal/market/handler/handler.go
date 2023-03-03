@@ -76,8 +76,9 @@ func (h Handler) setCookie(ctx context.Context, c echo.Context) (*http.Cookie, e
 
 func (h Handler) GetMain(c echo.Context) error {
 	ctx := context.TODO()
-	cookie, err := c.Cookie("session")
+	cookie, _ := c.Cookie("session")
 	if cookie == nil {
+		var err error
 		cookie, err = h.setCookie(ctx, c)
 		if err != nil {
 			return err
