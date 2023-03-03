@@ -91,7 +91,7 @@ func (uc UseCase) updateStatus(username, host, id string) {
 		}
 
 		if firstTime {
-			err = uc.storage.UpdateOrder(username, id, "REGISTERED", response.Accrual)
+			err = uc.storage.UpdateOrder(username, id, "REGISTERED", 0)
 			if err != nil {
 				log.Println(err)
 			}

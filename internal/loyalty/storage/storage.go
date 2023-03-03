@@ -207,10 +207,6 @@ func (s Storage) Withdraw(username string, amount float64, orderID string) error
 		return ErrNotEnoughMoney
 	}
 
-	//if isEnoughMoney == 3 {
-	//	return ErrWrongOrderID
-	//}
-
 	prepareDraw, err := s.DB.Prepare(drawBonuses)
 	if err != nil {
 		return err
