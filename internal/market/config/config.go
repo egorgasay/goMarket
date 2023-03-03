@@ -59,7 +59,6 @@ func New() *Config {
 		DBConfig: &storage.Config{
 			DriverName:     "mongo",
 			DataSourceCred: *f.dsn,
-			Name:           "vdb",
 		},
 		AccrualSystemAddress: *f.asa,
 	}

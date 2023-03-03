@@ -61,12 +61,12 @@ func (s Storage) Buy(ctx context.Context, cookie string, id string) error {
 	}
 
 	var item schema.Item
-	Id, err := primitive.ObjectIDFromHex(id)
+	ID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
 
-	var filter = bson.D{primitive.E{Key: "_id", Value: Id}}
+	var filter = bson.D{primitive.E{Key: "_id", Value: ID}}
 	c := s.db.Collection("items")
 
 	err = c.FindOne(ctx, filter).Decode(&item)
@@ -78,8 +78,11 @@ func (s Storage) Buy(ctx context.Context, cookie string, id string) error {
 		return ErrNotEnoughMoney
 	}
 
-	filter = bson.D{primitive.E{Key: "_id", Value: Id}}
-	update := bson.D{primitive.E{Key: "$set", Value: bson.D{{"count", item.Count - 1}}}}
+	filter = bson.D{primitive.E{Key: "_id", Value: ID}}
+	update := bson.D{primitive.E{Key: "$set", Value: bson.D{
+		primitive.E{Key: "count", Value: item.Count - 1},
+	}}}
+
 	r, err := c.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
