@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/httplog"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"gomarket/internal/loyalty/config"
@@ -71,7 +72,12 @@ func TestHandler_Registration(t *testing.T) {
 			logic := servicemocks.NewMockIUseCase(c)
 			test.mockBehavior(logic)
 			cfg := config.New()
-			h := NewHandler(cfg, logic)
+
+			logger := httplog.NewLogger("loyalty", httplog.Options{
+				Concise: true,
+			})
+
+			h := NewHandler(cfg, logic, logger)
 
 			r := httptest.NewRequest(http.MethodPost, url, strings.NewReader(test.body))
 			w := httptest.NewRecorder()
@@ -141,7 +147,11 @@ func TestHandler_Login(t *testing.T) {
 			logic := servicemocks.NewMockIUseCase(c)
 			test.mockBehavior(logic)
 			cfg := config.New()
-			h := NewHandler(cfg, logic)
+			logger := httplog.NewLogger("loyalty", httplog.Options{
+				Concise: true,
+			})
+
+			h := NewHandler(cfg, logic, logger)
 
 			r := httptest.NewRequest(http.MethodPost, url, strings.NewReader(test.body))
 			w := httptest.NewRecorder()
@@ -231,7 +241,11 @@ func TestHandler_PostOrders(t *testing.T) {
 			logic := servicemocks.NewMockIUseCase(c)
 			test.mockBehavior(logic)
 			cfg := config.New()
-			h := NewHandler(cfg, logic)
+			logger := httplog.NewLogger("loyalty", httplog.Options{
+				Concise: true,
+			})
+
+			h := NewHandler(cfg, logic, logger)
 
 			r := httptest.NewRequest(http.MethodPost, url, strings.NewReader(test.body))
 			if !test.dontNeedCookie {
@@ -294,7 +308,11 @@ func TestHandler_GetUserOrders(t *testing.T) {
 			logic := servicemocks.NewMockIUseCase(c)
 			test.mockBehavior(logic)
 			cfg := config.New()
-			h := NewHandler(cfg, logic)
+			logger := httplog.NewLogger("loyalty", httplog.Options{
+				Concise: true,
+			})
+
+			h := NewHandler(cfg, logic, logger)
 
 			r := httptest.NewRequest(http.MethodGet, url, strings.NewReader(""))
 			if test.isEmpty {
@@ -352,7 +370,11 @@ func TestHandler_GetBalance(t *testing.T) {
 			logic := servicemocks.NewMockIUseCase(c)
 			test.mockBehavior(logic)
 			cfg := config.New()
-			h := NewHandler(cfg, logic)
+			logger := httplog.NewLogger("loyalty", httplog.Options{
+				Concise: true,
+			})
+
+			h := NewHandler(cfg, logic, logger)
 
 			r := httptest.NewRequest(http.MethodGet, url, strings.NewReader(test.body))
 			if !test.dontNeedCookie {
@@ -426,7 +448,11 @@ func TestHandler_PostWithdraw(t *testing.T) {
 			logic := servicemocks.NewMockIUseCase(c)
 			test.mockBehavior(logic)
 			cfg := config.New()
-			h := NewHandler(cfg, logic)
+			logger := httplog.NewLogger("loyalty", httplog.Options{
+				Concise: true,
+			})
+
+			h := NewHandler(cfg, logic, logger)
 
 			r := httptest.NewRequest(http.MethodPost, url, strings.NewReader(test.body))
 			cookie := cookies.NewCookie("admin")
@@ -488,7 +514,11 @@ func TestHandler_GetWithdrawals(t *testing.T) {
 			logic := servicemocks.NewMockIUseCase(c)
 			test.mockBehavior(logic)
 			cfg := config.New()
-			h := NewHandler(cfg, logic)
+			logger := httplog.NewLogger("loyalty", httplog.Options{
+				Concise: true,
+			})
+
+			h := NewHandler(cfg, logic, logger)
 
 			r := httptest.NewRequest(http.MethodGet, url, strings.NewReader(test.body))
 			if !test.dontNeedCookie {
