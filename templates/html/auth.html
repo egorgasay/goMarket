@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  {{ if .login }}
+  <title>Login</title>
+  {{ else }}
+  <title>Register</title>
+  {{ end }}
+  <link rel="stylesheet" href="/static/css/login.css">
+  <link rel="stylesheet" href="/static/css/nav.css">
+
+</head>
+<body>
+{{template "nav" .}}
+<div id="login">
+  {{ if .error }} {{.error}} {{end}}
+  {{ if .login }}
+  <form action="/login" method="POST">
+  {{else}}
+  <form action="/reg" method="POST">
+  {{end}}
+    <input type="text" name="username" placeholder="Username">
+    <div class="spacer"></div>
+    <input type="password" name="password" placeholder="Password">
+    {{ if .login }}
+    <input type="submit" value="Login"><br>
+    <a href="/reg" style="text-decoration: none; color: black">still not registered?</a>
+    {{ else }}
+    <input type="submit" value="Register"><br>
+    <a href="/login" style="text-decoration: none; color: black">already have an account?</a>
+    {{ end }}
+  </form>
+</div>
+<!-- partial -->
+  
+</body>
+</html>

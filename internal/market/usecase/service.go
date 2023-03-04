@@ -13,7 +13,7 @@ type UseCase struct {
 //go:generate mockgen -source=service.go -destination=mocks/mock.go
 type IUseCase interface {
 	CreateAnonUser(ctx context.Context, cookie string) error
-	CreateUser(login, passwd string) error
+	CreateUser(login, passwd, cookie, loyaltyCookie string) (string, error)
 	CheckPassword(login, passwd string) error
 	GetBalance(ctx context.Context, cookie string) (schema.BalanceMarket, error)
 	GetItems(ctx context.Context) ([]schema.Item, error)

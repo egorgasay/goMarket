@@ -11,6 +11,7 @@ require (
 	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/lib/pq v1.10.7
+	github.com/rs/zerolog v1.27.0
 	github.com/stretchr/testify v1.8.1
 	go.mongodb.org/mongo-driver v1.7.0
 )
@@ -38,7 +39,6 @@ require (
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rs/zerolog v1.27.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect

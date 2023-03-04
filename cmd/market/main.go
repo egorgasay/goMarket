@@ -3,7 +3,9 @@ package main
 import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httplog"
+	echosession "github.com/go-session/echo-session"
 	"github.com/labstack/echo"
+	"gomarket/internal/logger"
 	"gomarket/internal/market/config"
 	handlers "gomarket/internal/market/handler"
 	"gomarket/internal/market/storage"
@@ -41,31 +43,38 @@ func main() {
 	logic := usecase.New(repo)
 	e := echo.New()
 
-	logger := httplog.NewLogger("loyalty", httplog.Options{
+	log := httplog.NewLogger("market", httplog.Options{
 		Concise: true,
 	})
 
-	h := handlers.NewHandler(cfg, logic, logger)
-	e.Use(echo.WrapMiddleware(httplog.RequestLogger(logger)))
+	h := handlers.NewHandler(cfg, logic, logger.New(log))
+	e.Use(echo.WrapMiddleware(httplog.RequestLogger(log)))
 	e.Use(echo.WrapMiddleware(middleware.Recoverer))
+	e.Use(echosession.New())
 
 	t := &Template{
 		templates: template.Must(template.ParseGlob("templates/html/*.html")),
 	}
 	e.Renderer = t
 
-	e.GET("/", h.GetMain)
+	e.Any("/", h.GetMain)
+	e.Any("/login", h.Login)
+	e.Any("/reg", h.Register)
+
 	e.Static("/static", "static")
 
 	// TODO: router.Use(gzip.Gzip(gzip.BestSpeed))
 	go func() {
-		logger.Info().Msg("Stating market: " + cfg.Host)
-		log.Fatal(http.ListenAndServe(cfg.Host, e))
+		log.Info().Msg("Stating market: " + cfg.Host)
+		err := http.ListenAndServe(cfg.Host, e)
+		if err != nil {
+			log.Error().Msg(err.Error())
+		}
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
-	logger.Info().Msg("Shutdown market ...")
+	log.Info().Msg("Shutdown market ...")
 }

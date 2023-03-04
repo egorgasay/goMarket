@@ -3,8 +3,14 @@
   <ul id="navigation">
     <a href="/"><li>Home</a></li>
     <a href="/"><li>About</a></li>
+    {{ if .Balance}}
     <a href="/"><li>Balance: ${{.Balance}}</a></li>
-    <a href="/"><li>Bonuses: {{.Bonuses}}</a></li>
+    {{ end }}
+    {{ if .login }}
+    <a href="/" style="color:green"><li>Bonuses: ${{.Bonuses}}</a></li>
+    {{ else }}
+    <a href="/reg" style="color:red"><li>GET FREE BONUS</a></li>
+    {{ end }}
     <a href="/"><li>Cart</a></li>
   </ul>
 </nav>

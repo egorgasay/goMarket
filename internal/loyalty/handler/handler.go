@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"github.com/rs/zerolog"
 	"gomarket/internal/logger"
 	"gomarket/internal/loyalty/config"
 	"gomarket/internal/loyalty/cookies"
@@ -21,12 +20,12 @@ type Handler struct {
 	logger logger.ILogger
 }
 
-func NewHandler(cfg *config.Config, logic usecase.IUseCase, loggerInstance zerolog.Logger) *Handler {
+func NewHandler(cfg *config.Config, logic usecase.IUseCase, loggerInstance logger.ILogger) *Handler {
 	if cfg == nil {
 		panic("конфиг равен nil")
 	}
 
-	return &Handler{conf: cfg, logic: logic, logger: logger.New(loggerInstance)}
+	return &Handler{conf: cfg, logic: logic, logger: loggerInstance}
 }
 
 func BindJSON(w http.ResponseWriter, r *http.Request, obj any) error {

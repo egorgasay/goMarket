@@ -2,11 +2,18 @@ package usecase
 
 import (
 	"context"
+	"gomarket/internal/loyalty/storage"
 	"gomarket/internal/market/schema"
+	"strings"
 )
 
-func (uc UseCase) CreateUser(login, passwd string) error {
-	return uc.storage.CreateUser(login, passwd)
+func (uc UseCase) CreateUser(login, passwd, cookie, loyaltyCookie string) (string, error) {
+	split := strings.Split(loyaltyCookie, "-")
+	if len(split) != 2 {
+		return "", storage.ErrBadCookie
+	}
+
+	return uc.storage.CreateUser(login, passwd, cookie, split[1])
 }
 
 func (uc UseCase) CheckPassword(login, passwd string) error {
@@ -28,5 +35,12 @@ func (uc UseCase) GetItems(ctx context.Context) ([]schema.Item, error) {
 }
 
 func (uc UseCase) Buy(ctx context.Context, cookie string, id string) error {
+	// go RegNewAccural
+	// go RegNewLoyalty
+
 	return uc.storage.Buy(ctx, cookie, id)
+}
+
+func regNewOrder(ctx context.Context, cookie string, id string) error {
+	return nil
 }

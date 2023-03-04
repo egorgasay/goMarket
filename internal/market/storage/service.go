@@ -11,7 +11,7 @@ import (
 //go:generate mockgen -source=service.go -destination=mocks/mock.go
 type IStorage interface {
 	CreateAnonUser(ctx context.Context, user schema.Customer) error
-	CreateUser(login, passwd string) error
+	CreateUser(login, passwd, cookie string, chars string) (string, error)
 	CheckPassword(login, passwd string) error
 	GetBalance(ctx context.Context, cookie string) (schema.BalanceMarket, error)
 	GetItems(ctx context.Context) ([]schema.Item, error)
@@ -47,7 +47,6 @@ func Init(cfg *Config) (IStorage, error) {
 	dao := &Storage{
 		db: client.Database("test"),
 	}
-
 
 	dao.db.Collection("customers").Drop(ctx)
 

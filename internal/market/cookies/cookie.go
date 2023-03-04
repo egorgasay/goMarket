@@ -12,7 +12,7 @@ import (
 var lastUID int64 = 0
 var idMu = &sync.Mutex{}
 
-func SetCookie() *http.Cookie {
+func SetCookie(readyCookie ...string) *http.Cookie {
 	log.Println("Setting new cookie...")
 	idMu.Lock()
 	lastUID++
@@ -22,7 +22,11 @@ func SetCookie() *http.Cookie {
 	fid := strconv.FormatInt(uid, 10)
 	cookie := new(http.Cookie)
 	cookie.Name = "session"
-	cookie.Value = cookies.NewCookie(fid).Value + fid
+	if len(readyCookie) > 0 {
+		cookie.Value = readyCookie[0]
+	} else {
+		cookie.Value = cookies.NewCookie(fid).Value + fid
+	}
 	cookie.Expires = time.Now().Add(24 * time.Hour * 365)
 	return cookie
 }

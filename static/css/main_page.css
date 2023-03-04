@@ -22,34 +22,6 @@ main{
   margin-right:auto;
 }
 
-/*navigation stuff*/
-#nav{
-  display:block;
-  float:left;
-  background-color:#9E9E9E;
-  margin-top:16px;
-}
-#navigation{
-  text-align: center;
-  list-style-type:none;
-}
-
-#navigation a{
-  color:gray;
-  text-decoration:none;
-  font-family:Georgia;
-  font-size:18px;
-}
-
-#navigation a:hover{
-  color:black;
-}
-
-#navigation li{
-   padding:10px;
-   display:inline-block;
-}
-
 
 /*body*/
 .containerimg{

@@ -5,15 +5,53 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"gomarket/internal/market/schema"
 	"log"
+	"strings"
 )
 
-func (s Storage) CreateUser(login, passwd string) error {
-	return nil
+func (s Storage) CreateUser(login, passwd, cookie string, chars string) (string, error) {
+	c := s.db.Collection("customers")
+	filter := bson.M{"cookie": cookie}
+	split := strings.Split(cookie, "-")
+	if len(split) != 2 {
+		return cookie, ErrBadCookie
+	}
+
+	newCookie := split[0] + "-" + chars
+
+	update := bson.D{primitive.E{Key: "$set", Value: bson.D{
+		primitive.E{Key: "login", Value: login},
+		primitive.E{Key: "password", Value: passwd},
+		primitive.E{Key: "cookie", Value: newCookie},
+	}}}
+	option := options.FindOneAndUpdate()
+	ctx := context.TODO()
+	c.FindOneAndUpdate(ctx, filter, update, option)
+	//if err != nil {
+	//	// withdrawal rollback (implement deposit handler)
+	//	return err
+	//}
+
+	return newCookie, nil
 }
 
 func (s Storage) CheckPassword(login, passwd string) error {
+	c := s.db.Collection("customers")
+	var filter = bson.D{primitive.E{Key: "login", Value: login}}
+
+	ctx := context.TODO()
+	var user schema.Customer
+	err := c.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return err
+	}
+
+	if user.Password != passwd {
+		return ErrWrongPassword
+	}
+
 	return nil
 }
 
@@ -79,7 +117,7 @@ func (s Storage) Buy(ctx context.Context, cookie string, id string) error {
 	}
 	if balance.Bonuses > 0 {
 		item.Price = item.Price - balance.Bonuses
-		// TODO: CALL LOYALTY TO CHANGE BONUS BALANCE
+		// withdrawal logic
 	}
 
 	filter = bson.D{primitive.E{Key: "_id", Value: ID}}
@@ -89,6 +127,7 @@ func (s Storage) Buy(ctx context.Context, cookie string, id string) error {
 
 	_, err = c.UpdateOne(ctx, filter, update)
 	if err != nil {
+		// withdrawal rollback (implement deposit handler)
 		return err
 	}
 
