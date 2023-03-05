@@ -167,7 +167,7 @@ func (h Handler) Login(c echo.Context) error {
 	cookie, _ := c.Cookie("session")
 	if cookie == nil {
 		var err error
-		cookie, err = h.setCookie(ctx, c)
+		_, err = h.setCookie(ctx, c)
 		if err != nil {
 			return err
 		}
@@ -208,7 +208,7 @@ func (h Handler) Register(c echo.Context) error {
 	cookie, _ := c.Cookie("session")
 	if cookie == nil {
 		var err error
-		cookie, err = h.setCookie(ctx, c)
+		_, err = h.setCookie(ctx, c)
 		h.logger.Warn(err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, "/")
 		return err
