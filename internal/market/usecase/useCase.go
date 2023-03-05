@@ -1,19 +1,50 @@
 package usecase
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"errors"
 	"gomarket/internal/loyalty/storage"
 	"gomarket/internal/market/schema"
+	"net/http"
 	"strings"
 )
 
-func (uc UseCase) CreateUser(login, passwd, cookie, loyaltyCookie string) (string, error) {
+var ErrReservedUsername = errors.New("username is reserved")
+var ErrServer = errors.New("server error, sorry! we're already working on it")
+var ErrBadCookie = errors.New("bad cookie")
+
+func (uc UseCase) CreateUser(user schema.Customer, cookie string, loyaltyAddress string) (string, error) {
+	jsonMSG, err := json.Marshal(&user)
+	if err != nil {
+		return "", err
+	}
+
+	reader := bytes.NewReader(jsonMSG)
+	resp, err := http.Post("http://"+loyaltyAddress+"/api/user/register", "application/json", reader)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if http.StatusConflict == resp.StatusCode {
+		return "", ErrReservedUsername
+	} else if resp.StatusCode != http.StatusOK {
+		return "", ErrServer
+	}
+
+	loyaltyCookie := resp.Header.Get("Authorization")
+	if loyaltyCookie == "" {
+		return "", ErrBadCookie
+	}
+
 	split := strings.Split(loyaltyCookie, "-")
 	if len(split) != 2 {
 		return "", storage.ErrBadCookie
 	}
 
-	return uc.storage.CreateUser(login, passwd, cookie, split[1])
+	return uc.storage.CreateUser(user.Login, user.Password, cookie, split[1])
 }
 
 func (uc UseCase) CheckPassword(login, passwd string) error {

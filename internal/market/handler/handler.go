@@ -3,8 +3,8 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
 	echosession "github.com/go-session/echo-session"
+	"github.com/labstack/echo"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gomarket/internal/logger"
 	"gomarket/internal/market/config"
@@ -12,9 +12,6 @@ import (
 	"gomarket/internal/market/schema"
 	"gomarket/internal/market/usecase"
 	"net/http"
-	"strings"
-
-	"github.com/labstack/echo"
 )
 
 type Handler struct {
@@ -68,7 +65,7 @@ func (h Handler) setCookie(ctx context.Context, c echo.Context) (*http.Cookie, e
 	err := h.logic.CreateAnonUser(ctx, cookie.Value)
 	if err != nil {
 		h.logger.Warn("ErrCreateAnonUser:" + err.Error())
-		err = c.Render(http.StatusOK, "main_page.html", H{"error": err})
+		err = c.Render(http.StatusInternalServerError, "main_page.html", H{"error": err})
 		if err != nil {
 			h.logger.Warn(err.Error())
 			return nil, err
@@ -96,7 +93,7 @@ func (h Handler) GetMain(c echo.Context) error {
 		err := h.logic.Buy(ctx, cookie.Value, id)
 		if err != nil {
 			h.logger.Warn("Buy:" + err.Error())
-			err = c.Render(http.StatusOK, "main_page.html", H{"error": err})
+			err = c.Render(http.StatusInternalServerError, "main_page.html", H{"error": err})
 			if err != nil {
 				h.logger.Warn(err.Error())
 				return err
@@ -106,6 +103,13 @@ func (h Handler) GetMain(c echo.Context) error {
 
 		items, balance, err := h.getItemsAndBalance(ctx, c, cookie.Value)
 		if err != nil {
+			err = c.Render(http.StatusInternalServerError, "main_page.html", H{
+				"login": login,
+				"error": "server error, sorry! we are working on it.",
+			})
+			if err != nil {
+				h.logger.Warn(err.Error())
+			}
 			return err
 		}
 
@@ -124,6 +128,13 @@ func (h Handler) GetMain(c echo.Context) error {
 
 	items, balance, err := h.getItemsAndBalance(ctx, c, cookie.Value)
 	if err != nil {
+		err = c.Render(http.StatusInternalServerError, "main_page.html", H{
+			"login": login,
+			"error": "server error, sorry! we are working on it.",
+		})
+		if err != nil {
+			h.logger.Warn(err.Error())
+		}
 		return err
 	}
 
@@ -136,11 +147,12 @@ func (h Handler) GetMain(c echo.Context) error {
 	if err != nil {
 		h.logger.Warn(err.Error())
 	}
-	return err
+	return nil
 }
 
 func (h Handler) Login(c echo.Context) error {
 	if c.Request().Method == http.MethodGet {
+		c.Response().WriteHeader(http.StatusOK)
 		err := c.Render(http.StatusOK, "auth.html", H{
 			"login": true,
 		})
@@ -166,10 +178,11 @@ func (h Handler) Login(c echo.Context) error {
 
 	err := h.logic.CheckPassword(username, password)
 	if err != nil {
-		if err != nil {
-			h.logger.Warn(err.Error())
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			h.logger.Warn("user don't exist")
+			err = errors.New("user don't exist")
 		}
-		err = c.Render(http.StatusOK, "auth.html", H{"error": err.Error()})
+		err = c.Render(http.StatusBadRequest, "auth.html", H{"error": err.Error(), "login": true})
 		if err != nil {
 			h.logger.Warn(err.Error())
 		}
@@ -185,6 +198,7 @@ func (h Handler) Register(c echo.Context) error {
 	if c.Request().Method == http.MethodGet {
 		err := c.Render(http.StatusOK, "auth.html", H{})
 		if err != nil {
+			c.Response().WriteHeader(http.StatusInternalServerError)
 			h.logger.Warn(err.Error())
 		}
 		return err
@@ -195,9 +209,9 @@ func (h Handler) Register(c echo.Context) error {
 	if cookie == nil {
 		var err error
 		cookie, err = h.setCookie(ctx, c)
-		if err != nil {
-			return err
-		}
+		h.logger.Warn(err.Error())
+		c.Redirect(http.StatusTemporaryRedirect, "/")
+		return err
 	}
 
 	var user schema.Customer
@@ -208,43 +222,10 @@ func (h Handler) Register(c echo.Context) error {
 		return err
 	}
 
-	username := user.Login
-	password := user.Password
-
-	reader := strings.NewReader(fmt.Sprintf(`{"login":"%s","password":"%s"}`, username, password))      // TODO: MARSHAL
-	request, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:8000/api/user/register", reader) // TODO: h.conf.loyaltyAddress
-	defer request.Body.Close()
+	newCookie, err := h.logic.CreateUser(user, cookie.Value, h.conf.LoyaltySystemAddress)
 	if err != nil {
 		h.logger.Warn(err.Error())
-		return err
-	} else if request.Response == nil {
-		h.logger.Warn("No Response")
-		return err
-	}
-
-	if http.StatusConflict == request.Response.StatusCode {
-		err = c.Render(http.StatusOK, "auth.html", H{"error": "username is already taken"})
-		if err != nil {
-			h.logger.Warn(err.Error())
-		}
-		return err
-	} else if request.Response.StatusCode != http.StatusOK {
-		err = c.Render(http.StatusOK, "auth.html", H{"error": "server error, sorry! we are working on it."})
-		if err != nil {
-			h.logger.Warn(err.Error())
-		}
-		return err
-	}
-
-	loyaltyCookie, err := request.Cookie("session")
-	if err != nil {
-		return err
-	}
-
-	newCookie, err := h.logic.CreateUser(username, password, cookie.Value, loyaltyCookie.Value)
-	if err != nil {
-		h.logger.Warn(err.Error())
-		err = c.Render(http.StatusOK, "auth.html", H{"error": err.Error()})
+		err = c.Render(http.StatusInternalServerError, "auth.html", H{"error": err.Error()})
 		if err != nil {
 			h.logger.Warn(err.Error())
 		}
@@ -254,7 +235,7 @@ func (h Handler) Register(c echo.Context) error {
 	c.SetCookie(cookies.SetCookie(newCookie))
 
 	store := echosession.FromContext(c)
-	store.Set(userkey, username)
+	store.Set(userkey, user.Login)
 	err = store.Save()
 	if err != nil {
 		return err

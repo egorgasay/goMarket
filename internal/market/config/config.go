@@ -12,10 +12,11 @@ const (
 )
 
 type Flag struct {
-	host *string
-	dsn  *string
-	asa  *string
-	key  string
+	host    *string
+	dsn     *string
+	asa     *string
+	loyalty *string
+	key     string
 }
 
 var f Flag
@@ -24,6 +25,7 @@ func init() {
 	f.host = flag.String("a", defaultHost, "-a=host")
 	f.dsn = flag.String("d", "", "-d=connection_string")
 	f.asa = flag.String("r", "", "-r=host")
+	f.loyalty = flag.String("l", "127.0.0.1:8000", "-l=host")
 }
 
 type Config struct {
@@ -31,6 +33,7 @@ type Config struct {
 	Key                  []byte
 	DBConfig             *storage.Config
 	AccrualSystemAddress string
+	LoyaltySystemAddress string
 }
 
 func New() *Config {
@@ -48,6 +51,10 @@ func New() *Config {
 		f.dsn = &dsn
 	}
 
+	if loyalty, ok := os.LookupEnv("LOYALTY"); ok {
+		f.loyalty = &loyalty
+	}
+
 	if key, ok := os.LookupEnv("KEY"); ok {
 		f.key = key
 		cookies.SetSecret([]byte(key))
@@ -61,5 +68,6 @@ func New() *Config {
 			DataSourceCred: *f.dsn,
 		},
 		AccrualSystemAddress: *f.asa,
+		LoyaltySystemAddress: *f.loyalty,
 	}
 }

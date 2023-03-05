@@ -1,6 +1,9 @@
 package schema
 
-import "time"
+import (
+	"gomarket/internal/loyalty/schema"
+	"time"
+)
 
 type BalanceMarket struct {
 	Current float32 `bson:"balance"`
@@ -29,8 +32,4 @@ type Order struct {
 	Date  time.Time `bson:"date"`
 }
 
-type AuthRequestJSON struct {
-	Login    string `json:"login,omitempty"`
-	Password string `json:"password,omitempty"`
-	Err      string `json:"err,omitempty"`
-}
+type AuthRequestJSON schema.AuthRequestJSON
