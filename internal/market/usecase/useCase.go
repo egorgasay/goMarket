@@ -53,6 +53,11 @@ func (uc UseCase) CheckPassword(login, passwd string) error {
 
 func (uc UseCase) GetBalance(ctx context.Context, cookie string, loyaltyAddress string) (schema.BalanceMarket, error) {
 	balance, err := uc.storage.GetBalance(ctx, cookie)
+	if err != nil {
+		log.Println(err)
+		return balance, nil
+	}
+
 	balance.Bonuses = 0
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+loyaltyAddress+"/api/user/balance", nil)
 	if err != nil {
@@ -152,6 +157,7 @@ func (uc UseCase) performRequest(req *http.Request, cookie string, code int) err
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != code {
 		log.Println("Error! Status code:", resp.StatusCode)
