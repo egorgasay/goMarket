@@ -7,19 +7,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gomarket/internal/market/schema"
-	"log"
-	"strings"
 )
 
-func (s Storage) CreateUser(login, passwd, cookie string, chars string) (string, error) {
+func (s Storage) CreateUser(login, passwd, cookie string, newCookie string) (string, error) {
 	c := s.db.Collection("customers")
 	filter := bson.M{"cookie": cookie}
-	split := strings.Split(cookie, "-")
-	if len(split) != 2 {
-		return cookie, ErrBadCookie
-	}
-
-	newCookie := split[0] + "-" + chars
 
 	update := bson.D{primitive.E{Key: "$set", Value: bson.D{
 		primitive.E{Key: "login", Value: login},
@@ -29,7 +21,7 @@ func (s Storage) CreateUser(login, passwd, cookie string, chars string) (string,
 	option := options.FindOneAndUpdate()
 	ctx := context.TODO()
 	c.FindOneAndUpdate(ctx, filter, update, option)
-	//if err != nil {
+	//if err != nil { WILL BE USED IN THE FUTURE
 	//	// withdrawal rollback (implement deposit handler)
 	//	return err
 	//}
@@ -82,6 +74,20 @@ func (s Storage) GetItems(ctx context.Context) ([]schema.Item, error) {
 	return items, err
 }
 
+func (s Storage) GetItem(ctx context.Context, id string) (schema.Item, error) {
+	c := s.db.Collection("items")
+	ID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return schema.Item{}, err
+	}
+
+	var filter = bson.D{primitive.E{Key: "_id", Value: ID}}
+	var item schema.Item
+	err = c.FindOne(ctx, filter).Decode(&item)
+
+	return item, err
+}
+
 func (s Storage) GetBalance(ctx context.Context, cookie string) (schema.BalanceMarket, error) {
 	c := s.db.Collection("customers")
 
@@ -92,35 +98,14 @@ func (s Storage) GetBalance(ctx context.Context, cookie string) (schema.BalanceM
 	return balance, err
 }
 
-func (s Storage) Buy(ctx context.Context, cookie string, id string) error {
-	balance, err := s.GetBalance(ctx, cookie)
-	if err != nil {
-		return err
-	}
-
-	var item schema.Item
+func (s Storage) Buy(ctx context.Context, cookie, id string, balance schema.BalanceMarket, item schema.Item) error {
+	c := s.db.Collection("items")
 	ID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
 
-	var filter = bson.D{primitive.E{Key: "_id", Value: ID}}
-	c := s.db.Collection("items")
-
-	err = c.FindOne(ctx, filter).Decode(&item)
-	if err != nil {
-		return err
-	}
-
-	if balance.Bonuses+balance.Current < item.Price {
-		return ErrNotEnoughMoney
-	}
-	if balance.Bonuses > 0 {
-		item.Price = item.Price - balance.Bonuses
-		// withdrawal logic
-	}
-
-	filter = bson.D{primitive.E{Key: "_id", Value: ID}}
+	filter := bson.D{primitive.E{Key: "_id", Value: ID}}
 	update := bson.D{primitive.E{Key: "$set", Value: bson.D{
 		primitive.E{Key: "count", Value: item.Count - 1},
 	}}}
@@ -138,12 +123,6 @@ func (s Storage) Buy(ctx context.Context, cookie string, id string) error {
 		primitive.E{Key: "balance", Value: balance.Current - item.Price},
 	}}}
 
-	r, err := c.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return err
-	}
-
-	log.Println(r)
-
-	return nil
+	_, err = c.UpdateOne(ctx, filter, update)
+	return err
 }

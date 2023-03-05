@@ -33,3 +33,12 @@ type Order struct {
 }
 
 type AuthRequestJSON schema.AuthRequestJSON
+type Bonus struct {
+	schema.Balance
+	Err string `json:"err"`
+}
+
+type AccrualRequest struct {
+	Order string `json:"order"`
+	Goods []Item `json:"goods"`
+}

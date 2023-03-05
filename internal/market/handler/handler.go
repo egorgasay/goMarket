@@ -41,7 +41,7 @@ func (h Handler) getItemsAndBalance(ctx context.Context, c echo.Context, cookie 
 		return nil, schema.BalanceMarket{}, err
 	}
 
-	balance, err := h.logic.GetBalance(ctx, cookie)
+	balance, err := h.logic.GetBalance(ctx, cookie, h.conf.LoyaltySystemAddress)
 	if err != nil {
 		if !errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, schema.BalanceMarket{}, err
@@ -90,7 +90,7 @@ func (h Handler) GetMain(c echo.Context) error {
 	_, login := store.Get(userkey)
 
 	if id := c.Request().URL.Query().Get("id"); id != "" {
-		err := h.logic.Buy(ctx, cookie.Value, id)
+		err := h.logic.Buy(ctx, cookie.Value, id, h.conf.AccrualSystemAddress, h.conf.LoyaltySystemAddress)
 		if err != nil {
 			h.logger.Warn("Buy:" + err.Error())
 			err = c.Render(http.StatusInternalServerError, "main_page.html", H{"error": err})

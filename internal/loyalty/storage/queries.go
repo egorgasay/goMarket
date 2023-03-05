@@ -29,13 +29,13 @@ WHERE "Name" = $2
 `
 const changeOrerWithoutAccrual = `
 UPDATE "Orders"
-SET "Status" = $2
-WHERE "UID" = $3
+SET "Status" = $1
+WHERE "UID" = $2
 `
 const checkBalance = `
 SELECT 
     CASE
-         WHEN "Balance" > $1 THEN 1
+         WHEN "Balance" > $1 - 1 THEN 1
 		 ELSE 2
     END
 FROM "Users"

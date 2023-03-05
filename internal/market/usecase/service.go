@@ -15,9 +15,9 @@ type IUseCase interface {
 	CreateAnonUser(ctx context.Context, cookie string) error
 	CreateUser(user schema.Customer, cookie, loyaltyAddress string) (string, error)
 	CheckPassword(login, passwd string) error
-	GetBalance(ctx context.Context, cookie string) (schema.BalanceMarket, error)
+	GetBalance(ctx context.Context, cookie string, loyaltyAddress string) (schema.BalanceMarket, error)
 	GetItems(ctx context.Context) ([]schema.Item, error)
-	Buy(ctx context.Context, cookie string, id string) error
+	Buy(ctx context.Context, cookie string, id string, accrualAddress string, loyaltyAddress string) error
 }
 
 func New(storage storage.IStorage) UseCase {

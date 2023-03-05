@@ -4,7 +4,6 @@ import (
 	"flag"
 	"gomarket/internal/loyalty/cookies"
 	"gomarket/internal/loyalty/storage"
-	"log"
 	"os"
 )
 
@@ -52,10 +51,6 @@ func New() *Config {
 	if key, ok := os.LookupEnv("KEY"); ok {
 		f.key = key
 		cookies.SetSecret([]byte(key))
-	}
-
-	if *f.dsn == "" {
-		log.Println("Here!!")
 	}
 
 	return &Config{

@@ -24,7 +24,7 @@ var f Flag
 func init() {
 	f.host = flag.String("a", defaultHost, "-a=host")
 	f.dsn = flag.String("d", "", "-d=connection_string")
-	f.asa = flag.String("r", "", "-r=host")
+	f.asa = flag.String("r", "127.0.0.1:8070", "-r=host")
 	f.loyalty = flag.String("l", "127.0.0.1:8000", "-l=host")
 }
 
