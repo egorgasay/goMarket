@@ -197,13 +197,13 @@ func (s Storage) Withdraw(username string, amount float64, orderID string) error
 		return err
 	}
 
-	var isEnoughMoney int
+	var isEnoughMoney bool
 	err = row.Scan(&isEnoughMoney)
 	if err != nil {
 		return err
 	}
 
-	if isEnoughMoney == 2 {
+	if !isEnoughMoney {
 		return ErrNotEnoughMoney
 	}
 

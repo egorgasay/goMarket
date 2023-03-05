@@ -35,8 +35,8 @@ WHERE "UID" = $2
 const checkBalance = `
 SELECT 
     CASE
-         WHEN "Balance" > $1 THEN 1
-		 ELSE 2
+         WHEN "Balance" >= $1 THEN TRUE
+		 ELSE FALSE
     END
 FROM "Users"
 WHERE "Name" = $2
