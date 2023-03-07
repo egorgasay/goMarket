@@ -1,4 +1,5 @@
 {{define "nav"}}
+<div class="nav">
 <nav>
   <ul id="navigation">
     <a href="/"><li>Home</a></li>
@@ -11,7 +12,9 @@
     {{ else }}
     <a href="/reg" style="color:red"><li>GET FREE BONUS</a></li>
     {{ end }}
-    <a href="/"><li>Cart</a></li>
+    <a class="cart" id="liveToastBtn">Shopping Cart</a>
+<!--    <a href="/"><li>Cart</a></li>-->
   </ul>
 </nav>
+</div>
 {{end}}

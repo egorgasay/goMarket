@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans');
+
+html{
+  height:100%; 
+  width:100%;
+  position:relative;
+  padding-top:1em;
+  margin:0;
+}
+
+main{
+  width:1000px;
+  margin-left:auto;
+  margin-right:auto;
+  display:block;
+}

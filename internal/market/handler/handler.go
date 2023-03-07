@@ -12,6 +12,7 @@ import (
 	"gomarket/internal/market/schema"
 	"gomarket/internal/market/usecase"
 	"net/http"
+	"strings"
 )
 
 type Handler struct {
@@ -87,13 +88,27 @@ func (h Handler) GetMain(c echo.Context) error {
 	}
 
 	store := echosession.FromContext(c)
-	_, login := store.Get(userkey)
+	user, login := store.Get(userkey)
+	if !login {
+		user = cookie.Value
+	}
 
-	if id := c.Request().URL.Query().Get("id"); id != "" {
-		err := h.logic.Buy(ctx, cookie.Value, id, h.conf.AccrualSystemAddress, h.conf.LoyaltySystemAddress)
+	username, ok := user.(string)
+	if !ok {
+		return errors.New("bad username")
+	}
+
+	if cart := c.Request().URL.Query().Get("cart"); cart != "" {
+		if len(cart) < 2 {
+			c.Redirect(http.StatusTemporaryRedirect, "/")
+		}
+
+		cart = cart[1:]
+		goods := strings.Split(cart, "|")
+		err := h.logic.BulkBuy(ctx, cookie.Value, username, h.conf.AccrualSystemAddress, h.conf.LoyaltySystemAddress, goods, login)
 		if err != nil {
 			h.logger.Warn("Buy:" + err.Error())
-			err = c.Render(http.StatusInternalServerError, "main_page.html", H{"error": err})
+			err = c.Render(http.StatusInternalServerError, "ok.html", H{})
 			if err != nil {
 				h.logger.Warn(err.Error())
 				return err
@@ -101,25 +116,7 @@ func (h Handler) GetMain(c echo.Context) error {
 			return err
 		}
 
-		items, balance, err := h.getItemsAndBalance(ctx, c, cookie.Value)
-		if err != nil {
-			err = c.Render(http.StatusInternalServerError, "main_page.html", H{
-				"login": login,
-				"error": "server error, sorry! we are working on it.",
-			})
-			if err != nil {
-				h.logger.Warn(err.Error())
-			}
-			return err
-		}
-
-		err = c.Render(http.StatusOK, "main_page.html", H{
-			"Balance": balance.Current,
-			"Bonuses": balance.Bonuses,
-			"Items":   items,
-			"Bought":  true,
-			"login":   login,
-		})
+		err = c.Render(http.StatusOK, "ok.html", H{"ok": true})
 		if err != nil {
 			h.logger.Warn(err.Error())
 		}

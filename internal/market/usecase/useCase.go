@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/ShiraazMoollatjie/goluhn"
 	schema2 "gomarket/internal/loyalty/schema"
@@ -13,12 +12,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+	"sync"
 )
-
-var ErrReservedUsername = errors.New("username is reserved")
-var ErrServer = errors.New("server error, sorry! we're already working on it")
-var ErrBadCookie = errors.New("bad cookie")
 
 func (uc UseCase) CreateUser(user schema.Customer, cookie string, loyaltyAddress string) (string, error) {
 	jsonMSG, err := json.Marshal(&user)
@@ -29,7 +26,8 @@ func (uc UseCase) CreateUser(user schema.Customer, cookie string, loyaltyAddress
 	reader := bytes.NewReader(jsonMSG)
 	resp, err := http.Post("http://"+loyaltyAddress+"/api/user/register", "application/json", reader)
 	if err != nil {
-		return "", err
+		log.Println(err)
+		return "", ErrDeadLoyalty
 	}
 	defer resp.Body.Close()
 
@@ -94,10 +92,8 @@ func (uc UseCase) GetItems(ctx context.Context) ([]schema.Item, error) {
 	return uc.storage.GetItems(ctx)
 }
 
-func (uc UseCase) Buy(ctx context.Context, cookie, id, accrualAddress, loyaltyAddress string) error {
+func (uc UseCase) Buy(ctx context.Context, cookie, id, accrualAddress, loyaltyAddress string, count int, login bool) error {
 	orderID := fmt.Sprint(goluhn.Generate(16)) // TODO: change to 128
-	go uc.regNewOrderAccrual(cookie, id, "http://"+accrualAddress+"/api/orders", orderID)
-	go uc.regNewOrderLoyalty(cookie, "http://"+loyaltyAddress+"/api/user/orders", orderID)
 
 	balance, err := uc.GetBalance(ctx, cookie, loyaltyAddress)
 	if err != nil {
@@ -109,9 +105,17 @@ func (uc UseCase) Buy(ctx context.Context, cookie, id, accrualAddress, loyaltyAd
 		return err
 	}
 
+	item.Price = float32(count) * item.Price
+
 	if balance.Bonuses+balance.Current < item.Price {
 		return storage.ErrNotEnoughMoney
 	}
+
+	if login {
+		go uc.regNewOrderAccrual(cookie, id, "http://"+accrualAddress+"/api/orders", orderID, count)
+		go uc.regNewOrderLoyalty(cookie, "http://"+loyaltyAddress+"/api/user/orders", orderID)
+	}
+
 	if balance.Bonuses > 0 {
 		var amount float32
 		if item.Price-balance.Bonuses >= 0 {
@@ -125,6 +129,8 @@ func (uc UseCase) Buy(ctx context.Context, cookie, id, accrualAddress, loyaltyAd
 			log.Println("can't write off bonuses:", err)
 		}
 	}
+
+	item.Count -= count
 
 	return uc.storage.Buy(ctx, cookie, id, balance, item)
 }
@@ -170,7 +176,7 @@ func (uc UseCase) performRequest(req *http.Request, cookie string, code int) err
 	return nil
 }
 
-func (uc UseCase) regNewOrderAccrual(cookie, id, host, orderID string) {
+func (uc UseCase) regNewOrderAccrual(cookie, id, host, orderID string, count int) {
 	item, err := uc.storage.GetItem(context.Background(), id)
 	if err != nil {
 		log.Println(err)
@@ -178,6 +184,7 @@ func (uc UseCase) regNewOrderAccrual(cookie, id, host, orderID string) {
 	}
 
 	item.Description = item.Name
+	item.Price *= float32(count)
 
 	accrualReq := schema.AccrualRequest{
 		Order: orderID,
@@ -212,4 +219,47 @@ func (uc UseCase) regNewOrderLoyalty(cookie, host, orderID string) {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+type UserMutesMap map[string]*sync.Mutex
+
+var userMutexes = make(UserMutesMap)
+
+func (uc UseCase) BulkBuy(ctx context.Context, cookie, username, accrualAddress, loyaltyAddress string, items []string, login bool) error {
+	if userMutexes[username] == nil {
+		userMutexes[username] = &sync.Mutex{}
+	}
+
+	userMutexes[username].Lock()
+	defer userMutexes[username].Unlock()
+
+	countOfSuccess := 0
+
+	for _, item := range items {
+		split := strings.Split(item, ":")
+		if len(split) != 2 {
+			log.Println(ErrBadOrder)
+			continue
+		}
+
+		count, err := strconv.Atoi(split[0])
+		if err != nil {
+			log.Println("Atoi:", err)
+			continue
+		}
+
+		err = uc.Buy(ctx, cookie, split[1], accrualAddress, loyaltyAddress, count, login)
+		if err != nil {
+			log.Println("Buy:", err)
+			continue
+		}
+
+		countOfSuccess++
+	}
+
+	if countOfSuccess != len(items) {
+		return ErrBadOrder
+	}
+
+	return nil
 }

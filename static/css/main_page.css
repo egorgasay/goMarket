@@ -1,65 +1,19 @@
-@import url('https://fonts.googleapis.com/css?family=Open+Sans');
-
-html{
-  height:100%; 
-  width:100%;
-  position:relative;
-  padding-top:1em;
-  margin:0;
+tbody, td, tfoot, th, thead, tr {
+    border-color: #afbfb8;
+    border-style: dotted; 
+    border-width: none;
+}
+#toastBody button{
+  background:rgba(255,255,255,.85);
+  border:1px solid #257025;
+  color: #000;
+  font-weight:bold;
 }
 
-main{
-  width:1000px;
-  margin-left:auto;
-  margin-right:auto;
-  display:block;
+.row-cols-md-3>* {
+    width: max-content !important;
 }
 
-/*header*/
-.headerimg{
-  display:block;
-  margin-left:auto;
-  margin-right:auto;
-}
-
-
-/*body*/
-.containerimg{
-  max-height:600px;
-  max-width:600px;
-  margin-left:0;
-}
-
-.container1{
-  width:600px;
-  display:block;
-  margin-left:auto;
-  margin-right:auto;
-  align-items: center;
-  padding-bottom: 35px;
-}
-
-
-h1 {
-  color: #636b6f;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 100;
-  font-size:22px;
-  height: 100vh;
-  margin: 0;
-  text-align:center;
-}
-
-h3{
-  font-family:Georgia;
-  font-size:16px;
-  font-weight:300;
-  text-align:center;
-}
-
-h4{
-  font-family:Georgia;
-  font-size:14px;
-  font-weight:100;
-  text-align:center;
+.card {
+    border: none !important;
 }

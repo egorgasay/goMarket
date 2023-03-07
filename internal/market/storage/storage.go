@@ -107,7 +107,7 @@ func (s Storage) Buy(ctx context.Context, cookie, id string, balance schema.Bala
 
 	filter := bson.D{primitive.E{Key: "_id", Value: ID}}
 	update := bson.D{primitive.E{Key: "$set", Value: bson.D{
-		primitive.E{Key: "count", Value: item.Count - 1},
+		primitive.E{Key: "count", Value: item.Count},
 	}}}
 
 	_, err = c.UpdateOne(ctx, filter, update)

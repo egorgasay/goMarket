@@ -1,28 +1,32 @@
-
 /*navigation stuff*/
-#nav{
+.nav{
+    margin-left: -3%;
     display:block;
     float:left;
-    background-color:#9E9E9E;
+    /*background-color:#9E9E9E;*/
     margin-top:16px;
-}
-#navigation{
     text-align: center;
-    list-style-type:none;
+    width: 100%;
+    /*list-style-type:none;*/
 }
 
-#navigation a{
+
+.nav a{
     color:gray;
     text-decoration:none;
     font-family:Georgia;
     font-size:18px;
 }
 
-#navigation a:hover{
+.nav a:hover{
     color:black;
 }
 
-#navigation li{
+.nav li{
     padding:10px;
     display:inline-block;
+}
+
+.nav .cart {
+    color:gray;
 }
