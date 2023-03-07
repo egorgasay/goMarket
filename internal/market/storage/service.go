@@ -12,7 +12,7 @@ import (
 type IStorage interface {
 	CreateAnonUser(ctx context.Context, user schema.Customer) error
 	CreateUser(login, passwd, cookie string, newCookie string) (string, error)
-	CheckPassword(login, passwd string) error
+	Authentication(login, passwd string) (string, error)
 	GetBalance(ctx context.Context, cookie string) (schema.BalanceMarket, error)
 	GetItems(ctx context.Context) ([]schema.Item, error)
 	GetItem(ctx context.Context, id string) (schema.Item, error)

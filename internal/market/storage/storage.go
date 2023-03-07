@@ -29,7 +29,7 @@ func (s Storage) CreateUser(login, passwd, cookie string, newCookie string) (str
 	return newCookie, nil
 }
 
-func (s Storage) CheckPassword(login, passwd string) error {
+func (s Storage) Authentication(login, passwd string) (string, error) {
 	c := s.db.Collection("customers")
 	var filter = bson.D{primitive.E{Key: "login", Value: login}}
 
@@ -37,14 +37,14 @@ func (s Storage) CheckPassword(login, passwd string) error {
 	var user schema.Customer
 	err := c.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if user.Password != passwd {
-		return ErrWrongPassword
+		return "", ErrWrongPassword
 	}
 
-	return nil
+	return user.Cookie, nil
 }
 
 func (s Storage) CreateAnonUser(ctx context.Context, user schema.Customer) error {

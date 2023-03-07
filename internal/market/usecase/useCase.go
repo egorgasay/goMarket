@@ -47,8 +47,8 @@ func (uc UseCase) CreateUser(user schema.Customer, cookie string, loyaltyAddress
 	return uc.storage.CreateUser(user.Login, user.Password, cookie, loyaltyCookie)
 }
 
-func (uc UseCase) CheckPassword(login, passwd string) error {
-	return uc.storage.CheckPassword(login, passwd)
+func (uc UseCase) Authentication(login, passwd string) (string, error) {
+	return uc.storage.Authentication(login, passwd)
 }
 
 func (uc UseCase) GetBalance(ctx context.Context, cookie string, loyaltyAddress string) (schema.BalanceMarket, error) {

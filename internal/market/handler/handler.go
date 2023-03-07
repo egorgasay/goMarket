@@ -173,10 +173,15 @@ func (h Handler) Login(c echo.Context) error {
 		}
 	}
 
-	username := c.Request().PostForm.Get("username")
-	password := c.Request().PostForm.Get("password")
+	var user schema.Customer
+	err := c.Bind(&user)
+	if err != nil {
+		h.logger.Warn(err.Error())
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		return err
+	}
 
-	err := h.logic.CheckPassword(username, password)
+	cookie.Value, err = h.logic.Authentication(user.Login, user.Password)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			h.logger.Warn("user don't exist")
@@ -186,6 +191,14 @@ func (h Handler) Login(c echo.Context) error {
 		if err != nil {
 			h.logger.Warn(err.Error())
 		}
+		return err
+	}
+	c.SetCookie(cookie)
+
+	store := echosession.FromContext(c)
+	store.Set(userkey, user.Login)
+	err = store.Save()
+	if err != nil {
 		return err
 	}
 

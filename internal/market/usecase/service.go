@@ -14,7 +14,7 @@ type UseCase struct {
 type IUseCase interface {
 	CreateAnonUser(ctx context.Context, cookie string) error
 	CreateUser(user schema.Customer, cookie, loyaltyAddress string) (string, error)
-	CheckPassword(login, passwd string) error
+	Authentication(login, passwd string) (string, error)
 	GetBalance(ctx context.Context, cookie string, loyaltyAddress string) (schema.BalanceMarket, error)
 	GetItems(ctx context.Context) ([]schema.Item, error)
 	Buy(ctx context.Context, cookie string, id string, accrualAddress string, loyaltyAddress string) error
