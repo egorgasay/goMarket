@@ -10,6 +10,7 @@
 </head>
 <body>
 {{template "nav" .}}
+{{ define "items" }}
 <!-- partial:index.partial.html -->
 {{if .error}}<center>{{.error}}</center>{{end}}
 <div class="clearfix"></div><br>
@@ -44,6 +45,8 @@
 </center>
 <br>
 
+{{end}}
+{{ template "items" . }}
 <div id="basket"></div>
 
 
@@ -76,9 +79,9 @@
 
   
 </div>
-<!-- partial -->
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js'></script>
-<script  src="/static/js/main_page.js"></script>
 
+<!-- partial -->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js'></script>
+<script  src="/static/js/main_page.js"></script>
 </body>
 </html>

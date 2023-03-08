@@ -159,6 +159,32 @@ func (s Storage) GetOrders(ctx context.Context, cookie string) ([]schema.Order, 
 	return orders, nil
 }
 
+func (s Storage) GetAllOrders(ctx context.Context) ([]schema.Order, error) {
+	c := s.db.Collection("orders")
+
+	orders := make([]schema.Order, 0)
+	filter := bson.D{primitive.E{}}
+	cur, err := c.Find(ctx, filter)
+	if err != nil {
+		return orders, err
+	}
+
+	for cur.TryNext(ctx) {
+		var order schema.Order
+		err = cur.Decode(&order)
+		if err != nil {
+			return nil, err
+		}
+		orders = append(orders, order)
+	}
+
+	if len(orders) == 0 {
+		return orders, mongo.ErrNoDocuments
+	}
+
+	return orders, nil
+}
+
 func (s Storage) AddOrder(ctx context.Context, order schema.Order) error {
 	c := s.db.Collection("orders")
 	_, err := c.InsertOne(ctx, order)

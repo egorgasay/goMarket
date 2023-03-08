@@ -311,3 +311,45 @@ func (h Handler) GetOrders(c echo.Context) error {
 	}
 	return nil
 }
+
+func (h Handler) GetAdmin(c echo.Context) error {
+	ctx := context.TODO()
+	store := echosession.FromContext(c)
+	user, login := store.Get(userkey)
+	if !login {
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+	}
+
+	_, ok := user.(string)
+	if !ok {
+		h.logger.Warn("Bad username")
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+	}
+
+	orders, err := h.logic.GetAllOrders(ctx)
+	if err != nil {
+		err = c.Render(http.StatusInternalServerError, "admin.html", H{
+			"error": err, "Orders": orders,
+		})
+	}
+
+	items, err := h.logic.GetItems(ctx)
+	if err != nil {
+		err = c.Render(http.StatusOK, "main_page.html", H{"error": err})
+		if err != nil {
+			h.logger.Warn("GetItems" + err.Error())
+		}
+		return err
+	}
+
+	err = c.Render(http.StatusOK, "admin.html", H{
+		"Orders": orders,
+		"Items":  items,
+	})
+
+	if err != nil {
+		h.logger.Warn(err.Error())
+	}
+
+	return nil
+}

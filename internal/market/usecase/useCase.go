@@ -285,3 +285,7 @@ func (uc UseCase) GetOrders(ctx context.Context, username string) ([]schema.Orde
 func (uc UseCase) addOrder(ctx context.Context, order schema.Order) error {
 	return uc.storage.AddOrder(ctx, order)
 }
+
+func (uc UseCase) GetAllOrders(ctx context.Context) ([]schema.Order, error) {
+	return uc.storage.GetAllOrders(ctx)
+}

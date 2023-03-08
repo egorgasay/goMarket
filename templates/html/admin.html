@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Admin panel</title>
+  <link rel="stylesheet" href="/static/css/admin.css">
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css'>
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css'>
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<aside id="sidebar">
+  <div class="logo">gomarket</div>
+  <menu>
+    <ul>
+      <li><a href="#page-1" id="messages-btn" class="menu-link active" style="text-decoration: none;">
+        <span class="icon fontawesome-envelope"></span>
+        Orders
+        <div class="menu-box-number">{{len (.Orders)}}</div>
+      </a></li>
+      <li><a id="invites-btn" class="menu-link" href="#page-2" style="text-decoration: none;">
+        <span class="icon entypo-paper-plane" ></span>
+        View</a></li>
+      <li><a id="events-btn" class="menu-link" href="#page-3" style="text-decoration: none;">
+        <span class="icon entypo-calendar"></span>
+        Add item</a></li>
+    </ul>
+  </menu>
+  <div class="profile">
+    <img src="http://placesheen.com/200/200" alt="Profile Picture" />
+    <p>gomarket</p>
+    <a href="/logout"><span class="icon entypo-cog"></span>Logout</a>
+  </div>
+</aside>
+<main>
+  <div id="page-1" class="content box-active">
+    <header>
+      {{ if .error }}
+      <h1 style="color: red">{{.error}}</h1><br>
+      {{end}}
+      {{ if .Orders }}
+      <h1>You have unhandled orders!</h1><br>
+      {{ else }}
+      <h1>You don't have unhandled orders :)</h1><br>
+      {{end}}
+    </header>
+    <ul>
+      {{range $key, $order := .Orders }}
+      <form method="post">
+      {{range $ki, $item := $order.Items }}
+      <li>
+          <div class="name"  style="font-size: 17px;font-family: Poppins;">{{$key}}</div>
+          <div class="subject" style="font-size: 17px;text-decoration: none;font-family: Poppins;">Name:{{$item.Name}} Count: {{$item.Count}} Price:{{$item.Price}}$ </div>
+          <div class="time">{{ $order.Date }}</div>&nbsp;&nbsp;
+      </li>
+      {{ end }}
+        <input type="radio" name="verdict" value="{{$order.ID}} - ok" class="ok">
+        <input type="radio" name="verdict" value="{{$order.ID}} - bad" class="bad">
+        <button>Change status</button>
+      </form>
+      {{ end }}
+    </ul>
+  </div>
+  <div id="page-3" class="content">
+    <header>
+      <h2>Edit</h2>
+      <div class="function-buttons"><span class="reply">Shop Name</span></div>
+    </header>
+    <form method="post">
+      &nbsp;<textarea name="html" style="width: 99%; height:700px; font-size:30px;" spellcheck="false">{{.Tasks}}
+    </textarea>
+      <br><br>
+      &nbsp;<button>Save</button>
+    </form>
+  </div>
+  <div id="page-2" class="content">
+    <header>
+      <h2>Preview</h2>
+      <div class="function-buttons"><span class="reply">Shop - Shop Name</span></div>
+    </header>
+    {{ template "items" . }}
+    <br>
+  </div>
+
+  <!-- partial -->
+  <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+  <script  src="/static/js/admin.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js'></script>
+  <script  src="/static/js/main_page.js"></script>
+</main>
+</body>
+</html>
