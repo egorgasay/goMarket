@@ -262,3 +262,14 @@ func (h Handler) GetWithdrawals() http.HandlerFunc {
 		w.Write(withdrawals)
 	}
 }
+
+// PingAccrual used for keep alive Accrual
+func (h Handler) PingAccrual() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, err := http.Get(h.conf.AccrualSystemAddress)
+		if err != nil {
+			h.logger.Warn(err.Error())
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}

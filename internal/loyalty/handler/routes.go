@@ -8,6 +8,8 @@ import (
 func (h Handler) PublicRoutes(r chi.Router) {
 	r.Post("/api/user/register", h.PostRegister())
 	r.Post("/api/user/login", h.PostLogin())
+	r.Head("/ping-accrual", h.PingAccrual())
+	r.Get("/ping-accrual", h.PingAccrual())
 }
 
 func (h Handler) PrivateRoutes(r chi.Router) {
