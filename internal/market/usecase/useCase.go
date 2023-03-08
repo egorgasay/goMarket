@@ -24,7 +24,7 @@ func (uc UseCase) CreateUser(user schema.Customer, cookie string, loyaltyAddress
 	}
 
 	reader := bytes.NewReader(jsonMSG)
-	resp, err := http.Post("http://"+loyaltyAddress+"/api/user/register", "application/json", reader)
+	resp, err := http.Post(loyaltyAddress+"/api/user/register", "application/json", reader)
 	if err != nil {
 		log.Println(err)
 		return "", ErrDeadLoyalty
@@ -57,7 +57,7 @@ func (uc UseCase) GetBalance(ctx context.Context, cookie string, loyaltyAddress 
 	}
 
 	balance.Bonuses = 0
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+loyaltyAddress+"/api/user/balance", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, loyaltyAddress+"/api/user/balance", nil)
 	if err != nil {
 		log.Println(err)
 		return balance, nil
@@ -105,6 +105,10 @@ func (uc UseCase) Buy(ctx context.Context, cookie, id, accrualAddress, loyaltyAd
 		return err
 	}
 
+	if item.Count < count {
+		return ErrBadOrder
+	}
+
 	item.Price = float32(count) * item.Price
 
 	if balance.Bonuses+balance.Current < item.Price {
@@ -112,8 +116,8 @@ func (uc UseCase) Buy(ctx context.Context, cookie, id, accrualAddress, loyaltyAd
 	}
 
 	if login {
-		go uc.regNewOrderAccrual(cookie, id, "http://"+accrualAddress+"/api/orders", orderID, count)
-		go uc.regNewOrderLoyalty(cookie, "http://"+loyaltyAddress+"/api/user/orders", orderID)
+		go uc.regNewOrderAccrual(cookie, id, accrualAddress+"/api/orders", orderID, count)
+		go uc.regNewOrderLoyalty(cookie, loyaltyAddress+"/api/user/orders", orderID)
 	}
 
 	if balance.Bonuses > 0 {
@@ -146,7 +150,7 @@ func (uc UseCase) withdrawalBonuses(cookie, id, loyaltyAddress string, amount fl
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, "http://"+loyaltyAddress+"/api/user/balance/withdraw", bytes.NewReader(ready))
+	req, err := http.NewRequest(http.MethodPost, loyaltyAddress+"/api/user/balance/withdraw", bytes.NewReader(ready))
 	if err != nil {
 		return err
 	}

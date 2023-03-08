@@ -21,6 +21,7 @@
           <div class="card shadow-sm">
             <img src="{{$value.ImagePath}}">
             <div class="card-body">
+              {{ if gt $value.Count 0 }}
               <span class="text-muted fs-6">Items left: {{$value.Count}}</span>
               <h6>{{$value.Name}}</h6>
               <p class="card-text">This is a wider card with supporting</p>
@@ -31,6 +32,9 @@
                 </div>
                 <small class="text-muted ">${{$value.Price}}</small>
               </div>
+              {{ else }}
+              <h6 style="color: red">SOLD OUT</h6>
+              {{end}}
             </div>
           </div>
         </div>
