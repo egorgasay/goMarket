@@ -5,6 +5,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gomarket/internal/market/schema"
 )
@@ -21,10 +22,15 @@ func (s Storage) CreateUser(login, passwd, cookie string, newCookie string) (str
 	option := options.FindOneAndUpdate()
 	ctx := context.TODO()
 	c.FindOneAndUpdate(ctx, filter, update, option)
-	//if err != nil { WILL BE USED IN THE FUTURE
-	//	// withdrawal rollback (implement deposit handler)
-	//	return err
-	//}
+
+	c = s.db.Collection("orders")
+	filter = bson.M{"owner": cookie}
+	update = bson.D{primitive.E{Key: "$set", Value: bson.D{
+		primitive.E{Key: "owner", Value: login}}}}
+	_, err := c.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return "", err
+	}
 
 	return newCookie, nil
 }
@@ -124,5 +130,37 @@ func (s Storage) Buy(ctx context.Context, cookie, id string, balance schema.Bala
 	}}}
 
 	_, err = c.UpdateOne(ctx, filter, update)
+	return err
+}
+
+func (s Storage) GetOrders(ctx context.Context, cookie string) ([]schema.Order, error) {
+	c := s.db.Collection("orders")
+	filter := bson.D{primitive.E{Key: "owner", Value: cookie}}
+	cur, err := c.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	orders := make([]schema.Order, 0)
+
+	for cur.TryNext(ctx) {
+		var order schema.Order
+		err = cur.Decode(&order)
+		if err != nil {
+			return nil, err
+		}
+		orders = append(orders, order)
+	}
+
+	if len(orders) == 0 {
+		return nil, mongo.ErrNoDocuments
+	}
+
+	return orders, nil
+}
+
+func (s Storage) AddOrder(ctx context.Context, order schema.Order) error {
+	c := s.db.Collection("orders")
+	_, err := c.InsertOne(ctx, order)
 	return err
 }

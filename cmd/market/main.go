@@ -60,6 +60,7 @@ func main() {
 	e.Any("/", h.GetMain)
 	e.Any("/login", h.Login)
 	e.Any("/reg", h.Register)
+	e.GET("/orders", h.GetOrders)
 	//e.GET("")
 
 	e.Static("/static", "static")

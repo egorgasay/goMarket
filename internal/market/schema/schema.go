@@ -27,9 +27,11 @@ type Item struct {
 }
 
 type Order struct {
-	ID    string    `bson:"ID"`
-	Items []Item    `bson:"items"`
-	Date  time.Time `bson:"date"`
+	ID     string    `bson:"_id,omitempty"`
+	Owner  string    `bson:"owner"`
+	Items  []Item    `bson:"items"`
+	Date   time.Time `bson:"date"`
+	Status string    `bson:"status"`
 }
 
 type AuthRequestJSON schema.AuthRequestJSON

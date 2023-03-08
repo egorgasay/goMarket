@@ -3,17 +3,18 @@
 <nav>
   <ul id="navigation">
     <a href="/"><li>Home</a></li>
-    <a href="/"><li>About</a></li>
+    <a href="/orders"><li>My Orders</a></li>
+    <a class="cart" id="liveToastBtn">Shopping Cart</a>
+<!--    <a href="/"><li>Cart</a></li>-->
+    <br>
     {{ if .Balance}}
     <a href="/"><li>Balance: ${{.Balance}}</a></li>
     {{ end }}
-    {{ if .login }}
+    {{ if and (not (eq .Bonuses nil)) (.login) }}
     <a href="/" style="color:green"><li>Bonuses: ${{.Bonuses}}</a></li>
-    {{ else }}
+    {{ else if not .login }}
     <a href="/reg" style="color:red"><li>GET FREE BONUS</a></li>
     {{ end }}
-    <a class="cart" id="liveToastBtn">Shopping Cart</a>
-<!--    <a href="/"><li>Cart</a></li>-->
   </ul>
 </nav>
 </div>

@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 func (uc UseCase) CreateUser(user schema.Customer, cookie string, loyaltyAddress string) (string, error) {
@@ -92,27 +93,27 @@ func (uc UseCase) GetItems(ctx context.Context) ([]schema.Item, error) {
 	return uc.storage.GetItems(ctx)
 }
 
-func (uc UseCase) Buy(ctx context.Context, cookie, id, accrualAddress, loyaltyAddress string, count int, login bool) error {
+func (uc UseCase) Buy(ctx context.Context, cookie, id, accrualAddress, loyaltyAddress string, count int, login bool) (schema.Item, error) {
 	orderID := fmt.Sprint(goluhn.Generate(16)) // TODO: change to 128
 
 	balance, err := uc.GetBalance(ctx, cookie, loyaltyAddress)
 	if err != nil {
-		return err
+		return schema.Item{}, err
 	}
 
 	item, err := uc.storage.GetItem(ctx, id)
 	if err != nil {
-		return err
+		return schema.Item{}, err
 	}
 
 	if item.Count < count {
-		return ErrBadOrder
+		return schema.Item{}, ErrBadOrder
 	}
 
 	item.Price = float32(count) * item.Price
 
 	if balance.Bonuses+balance.Current < item.Price {
-		return storage.ErrNotEnoughMoney
+		return schema.Item{}, storage.ErrNotEnoughMoney
 	}
 
 	if login {
@@ -136,7 +137,7 @@ func (uc UseCase) Buy(ctx context.Context, cookie, id, accrualAddress, loyaltyAd
 
 	item.Count -= count
 
-	return uc.storage.Buy(ctx, cookie, id, balance, item)
+	return item, uc.storage.Buy(ctx, cookie, id, balance, item)
 }
 
 func (uc UseCase) withdrawalBonuses(cookie, id, loyaltyAddress string, amount float32) error {
@@ -237,8 +238,8 @@ func (uc UseCase) BulkBuy(ctx context.Context, cookie, username, accrualAddress,
 	userMutexes[username].Lock()
 	defer userMutexes[username].Unlock()
 
-	countOfSuccess := 0
-
+	var order schema.Order
+	order.Items = make([]schema.Item, 0)
 	for _, item := range items {
 		split := strings.Split(item, ":")
 		if len(split) != 2 {
@@ -252,18 +253,35 @@ func (uc UseCase) BulkBuy(ctx context.Context, cookie, username, accrualAddress,
 			continue
 		}
 
-		err = uc.Buy(ctx, cookie, split[1], accrualAddress, loyaltyAddress, count, login)
+		uitem, err := uc.Buy(ctx, cookie, split[1], accrualAddress, loyaltyAddress, count, login)
 		if err != nil {
 			log.Println("Buy:", err)
 			continue
 		}
-
-		countOfSuccess++
+		uitem.Count = count
+		order.Items = append(order.Items, uitem)
 	}
 
-	if countOfSuccess != len(items) {
+	if len(order.Items) == 0 {
+		return ErrBadOrder
+	}
+
+	order.Date = time.Now()
+	order.Owner = username
+	order.Status = "CREATED"
+	go uc.addOrder(ctx, order)
+
+	if len(order.Items) != len(items) {
 		return ErrBadOrder
 	}
 
 	return nil
+}
+
+func (uc UseCase) GetOrders(ctx context.Context, username string) ([]schema.Order, error) {
+	return uc.storage.GetOrders(ctx, username)
+}
+
+func (uc UseCase) addOrder(ctx context.Context, order schema.Order) error {
+	return uc.storage.AddOrder(ctx, order)
 }

@@ -108,7 +108,7 @@ func (h Handler) GetMain(c echo.Context) error {
 		err := h.logic.BulkBuy(ctx, cookie.Value, username, h.conf.AccrualSystemAddress, h.conf.LoyaltySystemAddress, goods, login)
 		if err != nil {
 			h.logger.Warn("Buy:" + err.Error())
-			err = c.Render(http.StatusInternalServerError, "ok.html", H{})
+			err = c.Render(http.StatusInternalServerError, "check.html", H{})
 			if err != nil {
 				h.logger.Warn(err.Error())
 				return err
@@ -116,7 +116,7 @@ func (h Handler) GetMain(c echo.Context) error {
 			return err
 		}
 
-		err = c.Render(http.StatusOK, "ok.html", H{"ok": true})
+		err = c.Render(http.StatusOK, "check.html", H{"ok": true})
 		if err != nil {
 			h.logger.Warn(err.Error())
 		}
@@ -252,5 +252,62 @@ func (h Handler) Register(c echo.Context) error {
 	}
 
 	c.Redirect(http.StatusTemporaryRedirect, "/")
+	return nil
+}
+
+func (h Handler) GetOrders(c echo.Context) error {
+	ctx := context.TODO()
+	cookie, _ := c.Cookie("session")
+	if cookie == nil {
+		var err error
+		cookie, err = h.setCookie(ctx, c)
+		if err != nil {
+			return err
+		}
+	}
+
+	store := echosession.FromContext(c)
+	user, login := store.Get(userkey)
+	if !login {
+		user = cookie.Value
+	}
+
+	username, ok := user.(string)
+	if !ok {
+		return errors.New("bad username")
+	}
+
+	orders, err := h.logic.GetOrders(ctx, username)
+	if err != nil {
+		h.logger.Warn(err.Error())
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			err = c.Render(http.StatusInternalServerError, "orders.html", H{
+				"error": "you don't have aby orders. go buy smth", "login": login,
+			})
+			if err != nil {
+				h.logger.Warn(err.Error())
+			}
+			return err
+		}
+
+		err = c.Render(http.StatusInternalServerError, "orders.html", H{
+			"error": "something went wrong", "login": login,
+		})
+		if err != nil {
+			h.logger.Warn(err.Error())
+		}
+		return err
+	}
+
+	for i, j := 0, len(orders)-1; i < j; i, j = i+1, j-1 {
+		orders[i], orders[j] = orders[j], orders[i]
+	}
+
+	err = c.Render(http.StatusInternalServerError, "orders.html", H{
+		"Orders": orders, "login": login,
+	})
+	if err != nil {
+		h.logger.Warn(err.Error())
+	}
 	return nil
 }

@@ -18,8 +18,9 @@ type IUseCase interface {
 	Authentication(login, passwd string) (string, error)
 	GetBalance(ctx context.Context, cookie string, loyaltyAddress string) (schema.BalanceMarket, error)
 	GetItems(ctx context.Context) ([]schema.Item, error)
-	Buy(ctx context.Context, cookie, id, accrualAddress, loyaltyAddress string, count int, login bool) error
+	Buy(ctx context.Context, cookie, id, accrualAddress, loyaltyAddress string, count int, login bool) (schema.Item, error)
 	BulkBuy(ctx context.Context, cookie, username, accrualAddress, loyaltyAddress string, items []string, login bool) error
+	GetOrders(ctx context.Context, username string) ([]schema.Order, error)
 }
 
 func New(storage storage.IStorage) UseCase {

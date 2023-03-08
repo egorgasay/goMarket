@@ -17,6 +17,8 @@ type IStorage interface {
 	GetItems(ctx context.Context) ([]schema.Item, error)
 	GetItem(ctx context.Context, id string) (schema.Item, error)
 	Buy(ctx context.Context, cookie, id string, balance schema.BalanceMarket, item schema.Item) error
+	GetOrders(ctx context.Context, cookie string) ([]schema.Order, error)
+	AddOrder(ctx context.Context, order schema.Order) error
 }
 
 type Storage struct {
