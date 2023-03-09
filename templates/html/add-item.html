@@ -1,0 +1,78 @@
+{{ define "add-item" }}
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Add an item</title>
+  <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css'>
+<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.1/animate.min.css'>
+<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css'>
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<div class="container">
+
+    <section class="panel panel-default">
+<!--        <div class="panel-heading">-->
+<!--            <h3 class="panel-title">Add an item</h3>-->
+<!--        </div>-->
+        <div class="panel-body">
+
+            <form action="/admin/add-item" method="post" class="form-horizontal" role="form">
+
+                <div class="form-group">
+                    <div class="col-sm-9">
+                    </div>
+                </div> <!-- form-group // -->
+                <div class="form-group">
+                    <label for="name" class="col-sm-3 control-label">Name</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="name" id="name" placeholder="The Best T-Shirt In The World">
+                    </div>
+                </div> <!-- form-group // -->
+                <div class="form-group">
+                    <label for="about" class="col-sm-3 control-label">Description</label>
+                    <div class="col-sm-9">
+                        <textarea class="form-control" name="desc"></textarea>
+                    </div>
+                </div> <!-- form-group // -->
+                <div class="form-group">
+                    <label for="qty" class="col-sm-3 control-label">Count</label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" name="qty" id="qty" placeholder="qty">
+                    </div>
+                </div> <!-- form-group // -->
+                <div class="form-group">
+                    <label for="qty" class="col-sm-3 control-label">Price</label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" name="price" id="price" placeholder="$">
+                    </div>
+                </div> <!-- form-group // -->
+                <div class="form-group">
+                    <label for="qty" class="col-sm-3 control-label">Image URL</label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" name="img" id="img" placeholder="https://imagehost.ru/...">
+                    </div>
+                </div> <!-- form-group // -->
+                <div class="form-group">
+                    <hr>
+                    <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <button type="submit" class="btn btn-primary">Add</button>
+                        </div>
+                    </div> <!-- form-group // -->
+            </form>
+
+        </div><!-- panel-body // -->
+    </section><!-- panel// -->
+
+
+</div> <!-- container// -->
+<!-- partial -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js'></script>
+<script src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js'></script><script  src="./script.js"></script>
+
+</body>
+</html>
+{{end}}

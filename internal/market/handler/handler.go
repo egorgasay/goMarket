@@ -353,3 +353,17 @@ func (h Handler) GetAdmin(c echo.Context) error {
 
 	return nil
 }
+
+func (h Handler) PostAddItem(c echo.Context) error {
+	// TODO: validate user
+
+	var item schema.Item
+	err := c.Bind(&item)
+	if err != nil {
+		h.logger.Warn(err.Error())
+	}
+
+	c.Redirect(http.StatusTemporaryRedirect, "/admin#page3")
+
+	return nil
+}

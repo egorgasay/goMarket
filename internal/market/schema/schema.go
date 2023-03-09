@@ -19,11 +19,11 @@ type Customer struct {
 
 type Item struct {
 	ID          string  `bson:"_id"`
-	Name        string  `bson:"name"`
-	Price       float32 `bson:"price"`
-	Description string  `bson:"description,omitempty"`
-	Count       int     `bson:"count"`
-	ImagePath   string  `bson:"image_path"`
+	Name        string  `bson:"name" form:"name"`
+	Price       float32 `bson:"price" form:"price"`
+	Description string  `bson:"description,omitempty" form:"desc"`
+	Count       int     `bson:"count" form:"qty"`
+	ImagePath   string  `bson:"image_path" form:"img"`
 }
 
 type Order struct {

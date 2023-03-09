@@ -49,8 +49,8 @@
       <form method="post">
       {{range $ki, $item := $order.Items }}
       <li>
-          <div class="name"  style="font-size: 17px;font-family: Poppins;">{{$key}}</div>
-          <div class="subject" style="font-size: 17px;text-decoration: none;font-family: Poppins;">Name:{{$item.Name}} Count: {{$item.Count}} Price:{{$item.Price}}$ </div>
+          <div class="name"  style="font-size: 17px;font-family: Poppins;">{{$item.Name}}</div>
+          <div class="subject" style="font-size: 17px;text-decoration: none;font-family: Poppins;"> Count: {{$item.Count}} Price: {{$item.Price}}$ </div>
           <div class="time">{{ $order.Date }}</div>&nbsp;&nbsp;
       </li>
       {{ end }}
@@ -63,14 +63,15 @@
   </div>
   <div id="page-3" class="content">
     <header>
-      <h2>Edit</h2>
+      <h2>Add an item</h2>
       <div class="function-buttons"><span class="reply">Shop Name</span></div>
     </header>
-    <form method="post">
-      &nbsp;<textarea name="html" style="width: 99%; height:700px; font-size:30px;" spellcheck="false">{{.Tasks}}
-    </textarea>
-      <br><br>
-      &nbsp;<button>Save</button>
+    {{ template "add-item" }}
+<!--    <form method="post">-->
+<!--      &nbsp;<textarea name="html" style="width: 99%; height:700px; font-size:30px;" spellcheck="false">{{.Tasks}}-->
+<!--    </textarea>-->
+<!--      <br><br>-->
+<!--      &nbsp;<button>Save</button>-->
     </form>
   </div>
   <div id="page-2" class="content">
