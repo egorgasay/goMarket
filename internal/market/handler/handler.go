@@ -33,12 +33,8 @@ func NewHandler(cfg *config.Config, logic usecase.IUseCase, loggerInstance logge
 }
 
 func (h Handler) getItemsAndBalance(ctx context.Context, c echo.Context, cookie string) ([]schema.Item, schema.BalanceMarket, error) {
-	items, err := h.logic.GetItems(ctx)
+	items, err := h.getItems(ctx, c, "main_page.html")
 	if err != nil {
-		err := c.Render(http.StatusOK, "main_page.html", H{"error": err})
-		if err != nil {
-			h.logger.Warn("GetItems" + err.Error())
-		}
 		return nil, schema.BalanceMarket{}, err
 	}
 
@@ -138,7 +134,7 @@ func (h Handler) GetMain(c echo.Context) error {
 	err = c.Render(http.StatusOK, "main_page.html", H{
 		"Balance": balance.Current,
 		"Bonuses": balance.Bonuses,
-		"Items":   items,
+		"Items":   reverseSlice(items),
 		"login":   login,
 	})
 	if err != nil {
@@ -299,12 +295,8 @@ func (h Handler) GetOrders(c echo.Context) error {
 		return err
 	}
 
-	for i, j := 0, len(orders)-1; i < j; i, j = i+1, j-1 {
-		orders[i], orders[j] = orders[j], orders[i]
-	}
-
 	err = c.Render(http.StatusInternalServerError, "orders.html", H{
-		"Orders": orders, "login": login,
+		"Orders": reverseSlice(orders), "login": login,
 	})
 	if err != nil {
 		h.logger.Warn(err.Error())
@@ -326,25 +318,21 @@ func (h Handler) GetAdmin(c echo.Context) error {
 		c.Redirect(http.StatusTemporaryRedirect, "/login")
 	}
 
-	orders, err := h.logic.GetAllOrders(ctx)
+	// TODO: validate user
+
+	items, err := h.getItems(ctx, c, "admin.html")
 	if err != nil {
-		err = c.Render(http.StatusInternalServerError, "admin.html", H{
-			"error": err, "Orders": orders,
-		})
+		return err
 	}
 
-	items, err := h.logic.GetItems(ctx)
+	orders, err := h.getOrders(ctx, c)
 	if err != nil {
-		err = c.Render(http.StatusOK, "main_page.html", H{"error": err})
-		if err != nil {
-			h.logger.Warn("GetItems" + err.Error())
-		}
 		return err
 	}
 
 	err = c.Render(http.StatusOK, "admin.html", H{
-		"Orders": orders,
-		"Items":  items,
+		"Orders": reverseSlice(orders),
+		"Items":  reverseSlice(items),
 	})
 
 	if err != nil {
@@ -354,16 +342,185 @@ func (h Handler) GetAdmin(c echo.Context) error {
 	return nil
 }
 
+func (h Handler) getItems(ctx context.Context, c echo.Context, template string) ([]schema.Item, error) {
+	items, err := h.logic.GetItems(ctx)
+	if err != nil {
+		h.logger.Warn(err.Error())
+		err = c.Render(http.StatusOK, template, H{
+			"error":  err,
+			"Orders": []schema.Order{},
+			"Admin":  template == "admin.html"})
+		if err != nil {
+			h.logger.Warn("GetItems" + err.Error())
+		}
+		return items, err
+	}
+	return items, nil
+}
+
+func (h Handler) getOrders(ctx context.Context, c echo.Context) ([]schema.Order, error) {
+	orders, err := h.logic.GetAllOrders(ctx)
+	if err != nil {
+		err = c.Render(http.StatusInternalServerError, "admin.html", H{
+			"error": err, "Orders": orders,
+		})
+		return orders, err
+	}
+	return orders, nil
+}
+
 func (h Handler) PostAddItem(c echo.Context) error {
 	// TODO: validate user
 
+	var ctx = context.TODO()
+	var item schema.Item
+	//item.ID = uuid.Generate().String()
+	err := c.Bind(&item)
+	if err != nil {
+		h.logger.Warn(err.Error())
+	}
+
+	err = h.logic.AddItem(ctx, item)
+	if err != nil {
+		h.logger.Warn(err.Error())
+
+		items, err := h.getItems(ctx, c, "admin.html")
+		if err != nil {
+			return err
+		}
+
+		orders, err := h.getOrders(ctx, c)
+		if err != nil {
+			return err
+		}
+
+		err = c.Render(http.StatusOK, "admin.html", H{
+			"error":  err,
+			"Orders": orders,
+			"Items":  items,
+			"Admin":  true,
+		})
+		if err != nil {
+			h.logger.Warn("GetItems" + err.Error())
+		}
+		return err
+	}
+
+	c.Redirect(http.StatusTemporaryRedirect, "/admin")
+
+	return nil
+}
+
+func (h Handler) RemoveItem(c echo.Context) error {
+	// TODO: validate user
+	id := c.Request().URL.Query().Get("id")
+	var ctx = context.TODO()
+	if len(id) == 0 {
+		// TODO:  REPLACE !!!
+		h.logger.Warn("empty id")
+
+		items, err := h.getItems(ctx, c, "admin.html")
+		if err != nil {
+			return err
+		}
+
+		orders, err := h.getOrders(ctx, c)
+		if err != nil {
+			return err
+		}
+
+		err = c.Render(http.StatusOK, "admin.html", H{
+			"error":  err,
+			"Orders": orders,
+			"Items":  items,
+			"Admin":  true,
+		})
+		if err != nil {
+			h.logger.Warn("GetItems" + err.Error())
+		}
+		return err
+	}
+
+	err := h.logic.RemoveItem(ctx, id)
+	if err != nil {
+		h.logger.Warn(err.Error())
+
+		items, err := h.getItems(ctx, c, "admin.html")
+		if err != nil {
+			return err
+		}
+
+		orders, err := h.getOrders(ctx, c)
+		if err != nil {
+			return err
+		}
+
+		err = c.Render(http.StatusOK, "admin.html", H{
+			"error":  err,
+			"Orders": orders,
+			"Items":  items,
+			"Admin":  true,
+		})
+		if err != nil {
+			h.logger.Warn("GetItems" + err.Error())
+		}
+		return err
+	}
+
+	c.Redirect(http.StatusTemporaryRedirect, "/admin")
+
+	return nil
+}
+
+func (h Handler) ChangeItem(c echo.Context) error {
+	// TODO: validate user
+
+	var ctx = context.TODO()
 	var item schema.Item
 	err := c.Bind(&item)
 	if err != nil {
 		h.logger.Warn(err.Error())
 	}
 
-	c.Redirect(http.StatusTemporaryRedirect, "/admin#page3")
+	err = h.logic.ChangeItem(ctx, item)
+	if err != nil {
+		h.logger.Warn(err.Error())
+
+		items, err := h.getItems(ctx, c, "admin.html")
+		if err != nil {
+			return err
+		}
+
+		orders, err := h.getOrders(ctx, c)
+		if err != nil {
+			return err
+		}
+
+		err = c.Render(http.StatusOK, "admin.html", H{
+			"error":  err,
+			"Orders": orders,
+			"Items":  items,
+			"Admin":  true,
+		})
+		if err != nil {
+			h.logger.Warn("GetItems" + err.Error())
+		}
+		return err
+	}
+
+	c.Redirect(http.StatusTemporaryRedirect, "/admin")
 
 	return nil
+}
+
+type Slices interface {
+	schema.Order | schema.Item
+}
+
+func reverseSlice[S Slices](sl []S) []S {
+	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
+		sl[i], sl[j] = sl[j], sl[i]
+	}
+
+	return sl
 }

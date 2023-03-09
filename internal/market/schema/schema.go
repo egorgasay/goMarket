@@ -18,7 +18,7 @@ type Customer struct {
 }
 
 type Item struct {
-	ID          string  `bson:"_id"`
+	ID          string  `bson:"_id,omitempty" form:"ID"`
 	Name        string  `bson:"name" form:"name"`
 	Price       float32 `bson:"price" form:"price"`
 	Description string  `bson:"description,omitempty" form:"desc"`

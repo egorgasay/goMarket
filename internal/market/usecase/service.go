@@ -22,6 +22,9 @@ type IUseCase interface {
 	BulkBuy(ctx context.Context, cookie, username, accrualAddress, loyaltyAddress string, items []string, login bool) error
 	GetOrders(ctx context.Context, username string) ([]schema.Order, error)
 	GetAllOrders(ctx context.Context) ([]schema.Order, error)
+	AddItem(ctx context.Context, item schema.Item) error
+	RemoveItem(ctx context.Context, id string) error
+	ChangeItem(ctx context.Context, item schema.Item) error
 }
 
 func New(storage storage.IStorage) UseCase {

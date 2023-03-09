@@ -20,6 +20,9 @@ type IStorage interface {
 	GetOrders(ctx context.Context, cookie string) ([]schema.Order, error)
 	GetAllOrders(ctx context.Context) ([]schema.Order, error)
 	AddOrder(ctx context.Context, order schema.Order) error
+	AddItem(ctx context.Context, item schema.Item) error
+	RemoveItem(ctx context.Context, id string) error
+	ChangeItem(ctx context.Context, item schema.Item) error
 }
 
 type Storage struct {

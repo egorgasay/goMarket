@@ -49,7 +49,7 @@
       <form method="post">
       {{range $ki, $item := $order.Items }}
       <li>
-          <div class="name"  style="font-size: 17px;font-family: Poppins;">{{$item.Name}}</div>
+          <div class="name"  style="font-size: 12px;font-family: Poppins;">{{$item.Name}}</div>
           <div class="subject" style="font-size: 17px;text-decoration: none;font-family: Poppins;"> Count: {{$item.Count}} Price: {{$item.Price}}$ </div>
           <div class="time">{{ $order.Date }}</div>&nbsp;&nbsp;
       </li>
@@ -67,24 +67,56 @@
       <div class="function-buttons"><span class="reply">Shop Name</span></div>
     </header>
     {{ template "add-item" }}
-<!--    <form method="post">-->
-<!--      &nbsp;<textarea name="html" style="width: 99%; height:700px; font-size:30px;" spellcheck="false">{{.Tasks}}-->
-<!--    </textarea>-->
-<!--      <br><br>-->
-<!--      &nbsp;<button>Save</button>-->
-    </form>
   </div>
   <div id="page-2" class="content">
     <header>
       <h2>Preview</h2>
       <div class="function-buttons"><span class="reply">Shop - Shop Name</span></div>
     </header>
-    {{ template "items" . }}
+    <div class="clearfix"></div><br>
+    <center>
+      <div class="items container" style="width:80%">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3" >
+          {{ range $key, $value := .Items }}
+          <div class="col">
+            <div class="card shadow-sm">
+              <img src="{{$value.ImagePath}}">
+              <form method="post" action="/admin/change">
+              <div class="card-body">
+                <input name="ID" id="ID" class="form-control-sm" value="{{$value.ID}}" readonly>
+                <div class="d-flex justify-content-between align-items-center">
+                <h6 name="qty">Count:</h6>
+                <input id="count" class="form-control-sm" value="{{$value.Count}}">
+                <h6>Name:</h6>
+                <input name="name"  id="name" class="form-control-sm" value="{{$value.Name}}">
+              </div>
+                <!--              <p class="card-text">This is a wider card with supporting</p>-->
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="btn-group">
+                    <button  type="button" onclick="location.href='/admin/remove?id={{$value.ID}}'" class="btn btn-sm btn-outline-secondary btn-danger text-white">Remove</button>
+
+                  </div>
+                  <div class="btn-group">
+                    <button type="submit"  class="btn btn-sm btn-outline-secondary btn-success text-white">Save</button>
+
+                  </div>
+                  <h6>Price:</h6>
+                  <input name="price" class="form-control-sm" value="{{$value.Price}}">
+                </div>
+              </form>
+              </div>
+            </div>
+          </div>
+          {{end}}
+        </div>
+      </div>
+    </center>
+    <br>
     <br>
   </div>
 
   <!-- partial -->
-  <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+<!--  <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>-->
   <script  src="/static/js/admin.js"></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js'></script>
   <script  src="/static/js/main_page.js"></script>

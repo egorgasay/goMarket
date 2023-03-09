@@ -289,3 +289,15 @@ func (uc UseCase) addOrder(ctx context.Context, order schema.Order) error {
 func (uc UseCase) GetAllOrders(ctx context.Context) ([]schema.Order, error) {
 	return uc.storage.GetAllOrders(ctx)
 }
+
+func (uc UseCase) AddItem(ctx context.Context, item schema.Item) error {
+	return uc.storage.AddItem(ctx, item)
+}
+
+func (uc UseCase) RemoveItem(ctx context.Context, id string) error {
+	return uc.storage.RemoveItem(ctx, id)
+}
+
+func (uc UseCase) ChangeItem(ctx context.Context, item schema.Item) error {
+	return uc.storage.ChangeItem(ctx, item)
+}

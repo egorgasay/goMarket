@@ -190,3 +190,31 @@ func (s Storage) AddOrder(ctx context.Context, order schema.Order) error {
 	_, err := c.InsertOne(ctx, order)
 	return err
 }
+
+func (s Storage) AddItem(ctx context.Context, item schema.Item) error {
+	c := s.db.Collection("items")
+	_, err := c.InsertOne(ctx, item)
+	return err
+}
+
+func (s Storage) RemoveItem(ctx context.Context, id string) error {
+	c := s.db.Collection("items")
+	ID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	filter := bson.D{primitive.E{Key: "_id", Value: ID}}
+	_, err = c.DeleteOne(ctx, filter)
+	return err
+}
+
+func (s Storage) ChangeItem(ctx context.Context, item schema.Item) error {
+	c := s.db.Collection("items")
+	ID, err := primitive.ObjectIDFromHex(item.ID)
+	if err != nil {
+		return err
+	}
+	filter := bson.D{primitive.E{Key: "_id", Value: ID}}
+	_, err = c.ReplaceOne(ctx, filter, item)
+	return err
+}

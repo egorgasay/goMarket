@@ -10,7 +10,6 @@ import (
 	handlers "gomarket/internal/market/handler"
 	"gomarket/internal/market/storage"
 	"gomarket/internal/market/usecase"
-	middle "gomarket/internal/middleware"
 	"html/template"
 	"io"
 	"log"
@@ -63,8 +62,10 @@ func main() {
 	e.Any("/login", h.Login)
 	e.Any("/reg", h.Register)
 	e.GET("/orders", h.GetOrders)
-	e.GET("/admin", h.GetAdmin, echo.WrapMiddleware(middle.AuthRequired))
-	e.POST("/admin/add-item", h.PostAddItem, echo.WrapMiddleware(middle.AuthRequired))
+	e.Any("/admin", h.GetAdmin)
+	e.POST("/admin/add-item", h.PostAddItem)
+	e.GET("/admin/remove", h.RemoveItem)
+	e.POST("/admin/change", h.ChangeItem)
 
 	e.Static("/static", "static")
 
