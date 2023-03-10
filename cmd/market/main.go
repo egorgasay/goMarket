@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httplog"
 	echosession "github.com/go-session/echo-session"
@@ -12,7 +13,6 @@ import (
 	"gomarket/internal/market/usecase"
 	"html/template"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -35,17 +35,17 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 func main() {
 	cfg := config.New()
 
+	log := httplog.NewLogger("market", httplog.Options{
+		Concise: true,
+	})
+
 	repo, err := storage.Init(cfg.DBConfig)
 	if err != nil {
-		log.Fatalf("Failed to initialize: %s", err.Error())
+		log.Info().Msg(fmt.Sprintf("Failed to initialize: %s", err.Error()))
 	}
 
 	logic := usecase.New(repo)
 	e := echo.New()
-
-	log := httplog.NewLogger("market", httplog.Options{
-		Concise: true,
-	})
 
 	h := handlers.NewHandler(cfg, logic, logger.New(log))
 	e.Use(echo.WrapMiddleware(httplog.RequestLogger(log)))

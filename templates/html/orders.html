@@ -21,7 +21,7 @@
         {{ range $k, $value := $order.Items }}
         <div class="col">
           <div class="card shadow-sm">
-            <img src="{{$value.ImagePath}}">
+            <img src="{{$value.ImagePath}}" style="object-fit: scale-down;width: 600px;height: 600px;">
             <div class="card-body">
               <span class="text-muted fs-6">Count: {{$value.Count}}</span>
               <h6>{{$value.Name}}</h6>

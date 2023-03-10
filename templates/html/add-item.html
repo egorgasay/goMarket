@@ -19,7 +19,7 @@
 <!--        </div>-->
         <div class="panel-body">
 
-            <form action="/admin/add-item" method="post" class="form-horizontal" role="form">
+            <form action="/admin/add-item" method="post" class="form-horizontal" role="form"  enctype="multipart/form-data">
 
                 <div class="form-group">
                     <div class="col-sm-9">
@@ -50,9 +50,10 @@
                     </div>
                 </div> <!-- form-group // -->
                 <div class="form-group">
-                    <label for="qty" class="col-sm-3 control-label">Image URL</label>
+                    <label for="name" class="col-sm-3 control-label">Upload</label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" name="img" id="img" placeholder="https://imagehost.ru/...">
+                        <label class="control-label small" for="img">Image (jpg/png):</label>
+                        <input type="file" name="img" id="img">
                     </div>
                 </div> <!-- form-group // -->
                 <div class="form-group">

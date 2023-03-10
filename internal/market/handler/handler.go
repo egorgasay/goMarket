@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	echosession "github.com/go-session/echo-session"
 	"github.com/labstack/echo"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -30,46 +31,6 @@ func NewHandler(cfg *config.Config, logic usecase.IUseCase, loggerInstance logge
 		panic("конфиг равен nil")
 	}
 	return &Handler{conf: cfg, logic: logic, logger: loggerInstance}
-}
-
-func (h Handler) getItemsAndBalance(ctx context.Context, c echo.Context, cookie string) ([]schema.Item, schema.BalanceMarket, error) {
-	items, err := h.getItems(ctx, c, "main_page.html")
-	if err != nil {
-		return nil, schema.BalanceMarket{}, err
-	}
-
-	balance, err := h.logic.GetBalance(ctx, cookie, h.conf.LoyaltySystemAddress)
-	if err != nil {
-		if !errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, schema.BalanceMarket{}, err
-		}
-		_, err := h.setCookie(ctx, c)
-		if err != nil {
-			return nil, schema.BalanceMarket{}, err
-		}
-
-		c.Redirect(http.StatusTemporaryRedirect, "/")
-		return nil, schema.BalanceMarket{}, err
-	}
-
-	return items, balance, nil
-}
-
-func (h Handler) setCookie(ctx context.Context, c echo.Context) (*http.Cookie, error) {
-	cookie := cookies.SetCookie()
-	c.SetCookie(cookie)
-
-	err := h.logic.CreateAnonUser(ctx, cookie.Value)
-	if err != nil {
-		h.logger.Warn("ErrCreateAnonUser:" + err.Error())
-		err = c.Render(http.StatusInternalServerError, "main_page.html", H{"error": err})
-		if err != nil {
-			h.logger.Warn(err.Error())
-			return nil, err
-		}
-	}
-
-	return cookie, nil
 }
 
 func (h Handler) GetMain(c echo.Context) error {
@@ -160,7 +121,7 @@ func (h Handler) Login(c echo.Context) error {
 	cookie, _ := c.Cookie("session")
 	if cookie == nil {
 		var err error
-		_, err = h.setCookie(ctx, c)
+		cookie, err = h.setCookie(ctx, c)
 		if err != nil {
 			return err
 		}
@@ -342,68 +303,29 @@ func (h Handler) GetAdmin(c echo.Context) error {
 	return nil
 }
 
-func (h Handler) getItems(ctx context.Context, c echo.Context, template string) ([]schema.Item, error) {
-	items, err := h.logic.GetItems(ctx)
-	if err != nil {
-		h.logger.Warn(err.Error())
-		err = c.Render(http.StatusOK, template, H{
-			"error":  err,
-			"Orders": []schema.Order{},
-			"Admin":  template == "admin.html"})
-		if err != nil {
-			h.logger.Warn("GetItems" + err.Error())
-		}
-		return items, err
-	}
-	return items, nil
-}
-
-func (h Handler) getOrders(ctx context.Context, c echo.Context) ([]schema.Order, error) {
-	orders, err := h.logic.GetAllOrders(ctx)
-	if err != nil {
-		err = c.Render(http.StatusInternalServerError, "admin.html", H{
-			"error": err, "Orders": orders,
-		})
-		return orders, err
-	}
-	return orders, nil
-}
-
 func (h Handler) PostAddItem(c echo.Context) error {
 	// TODO: validate user
 
 	var ctx = context.TODO()
 	var item schema.Item
-	//item.ID = uuid.Generate().String()
 	err := c.Bind(&item)
 	if err != nil {
 		h.logger.Warn(err.Error())
 	}
 
+	file, err := c.FormFile("img")
+	if err != nil {
+		return h.handleAdminError(ctx, c, err)
+	}
+
+	item.ImagePath, err = h.saveImage(file)
+	if err != nil {
+		return h.handleAdminError(ctx, c, err)
+	}
+
 	err = h.logic.AddItem(ctx, item)
 	if err != nil {
-		h.logger.Warn(err.Error())
-
-		items, err := h.getItems(ctx, c, "admin.html")
-		if err != nil {
-			return err
-		}
-
-		orders, err := h.getOrders(ctx, c)
-		if err != nil {
-			return err
-		}
-
-		err = c.Render(http.StatusOK, "admin.html", H{
-			"error":  err,
-			"Orders": orders,
-			"Items":  items,
-			"Admin":  true,
-		})
-		if err != nil {
-			h.logger.Warn("GetItems" + err.Error())
-		}
-		return err
+		return h.handleAdminError(ctx, c, err)
 	}
 
 	c.Redirect(http.StatusTemporaryRedirect, "/admin")
@@ -416,55 +338,12 @@ func (h Handler) RemoveItem(c echo.Context) error {
 	id := c.Request().URL.Query().Get("id")
 	var ctx = context.TODO()
 	if len(id) == 0 {
-		// TODO:  REPLACE !!!
-		h.logger.Warn("empty id")
-
-		items, err := h.getItems(ctx, c, "admin.html")
-		if err != nil {
-			return err
-		}
-
-		orders, err := h.getOrders(ctx, c)
-		if err != nil {
-			return err
-		}
-
-		err = c.Render(http.StatusOK, "admin.html", H{
-			"error":  err,
-			"Orders": orders,
-			"Items":  items,
-			"Admin":  true,
-		})
-		if err != nil {
-			h.logger.Warn("GetItems" + err.Error())
-		}
-		return err
+		return h.handleAdminError(ctx, c, errors.New("empty id"))
 	}
 
 	err := h.logic.RemoveItem(ctx, id)
 	if err != nil {
-		h.logger.Warn(err.Error())
-
-		items, err := h.getItems(ctx, c, "admin.html")
-		if err != nil {
-			return err
-		}
-
-		orders, err := h.getOrders(ctx, c)
-		if err != nil {
-			return err
-		}
-
-		err = c.Render(http.StatusOK, "admin.html", H{
-			"error":  err,
-			"Orders": orders,
-			"Items":  items,
-			"Admin":  true,
-		})
-		if err != nil {
-			h.logger.Warn("GetItems" + err.Error())
-		}
-		return err
+		return h.handleAdminError(ctx, c, err)
 	}
 
 	c.Redirect(http.StatusTemporaryRedirect, "/admin")
@@ -474,43 +353,29 @@ func (h Handler) RemoveItem(c echo.Context) error {
 
 func (h Handler) ChangeItem(c echo.Context) error {
 	// TODO: validate user
-
-	var ctx = context.TODO()
+	var ctx = context.Background()
 	var item schema.Item
 	err := c.Bind(&item)
 	if err != nil {
 		h.logger.Warn(err.Error())
 	}
 
-	err = h.logic.ChangeItem(ctx, item)
-	if err != nil {
-		h.logger.Warn(err.Error())
-
-		items, err := h.getItems(ctx, c, "admin.html")
+	file, err := c.FormFile("cimg")
+	if err == nil {
+		item.ImagePath, err = h.saveImage(file)
 		if err != nil {
-			return err
+			//h.handleAdminError(ctx, c, err)
+			h.logger.Warn(err.Error())
 		}
-
-		orders, err := h.getOrders(ctx, c)
-		if err != nil {
-			return err
-		}
-
-		err = c.Render(http.StatusOK, "admin.html", H{
-			"error":  err,
-			"Orders": orders,
-			"Items":  items,
-			"Admin":  true,
-		})
-		if err != nil {
-			h.logger.Warn("GetItems" + err.Error())
-		}
-		return err
 	}
 
-	c.Redirect(http.StatusTemporaryRedirect, "/admin")
+	err = h.logic.ChangeItem(ctx, item)
+	if err != nil {
+		//h.handleAdminError(ctx, c, err)
+		h.logger.Warn(err.Error())
+	}
 
-	return nil
+	return c.HTML(http.StatusOK, fmt.Sprintf("<p>File uploaded successfully</p><script>window.location.replace(\"/admin\");</script>"))
 }
 
 type Slices interface {

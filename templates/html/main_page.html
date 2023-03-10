@@ -16,11 +16,11 @@
 <div class="clearfix"></div><br>
 <center>
 <div class="items container" style="width:80%">
-  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3" >
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3" style="min-width:800px;">
         {{ range $key, $value := .Items }}
         <div class="col">
           <div class="card shadow-sm">
-            <img src="{{$value.ImagePath}}">
+            <img src="{{$value.ImagePath}}" style="object-fit: scale-down;width: 600px;height: 600px;">
             <div class="card-body">
               {{ if gt $value.Count 0 }}
               <span class="text-muted fs-6">Items left: {{$value.Count}}</span>

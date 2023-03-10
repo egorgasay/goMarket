@@ -214,6 +214,8 @@ func (s Storage) ChangeItem(ctx context.Context, item schema.Item) error {
 	if err != nil {
 		return err
 	}
+
+	item.ID = ""
 	filter := bson.D{primitive.E{Key: "_id", Value: ID}}
 	_, err = c.ReplaceOne(ctx, filter, item)
 	return err

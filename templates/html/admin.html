@@ -81,12 +81,17 @@
           <div class="col">
             <div class="card shadow-sm">
               <img src="{{$value.ImagePath}}">
-              <form method="post" action="/admin/change">
+              <form method="post" action="/admin/change" enctype="multipart/form-data">
               <div class="card-body">
-                <input name="ID" id="ID" class="form-control-sm" value="{{$value.ID}}" readonly>
+                <input hidden="hidden" name="img" id="img" class="form-control-sm" value="{{$value.ImagePath}}" readonly>
+                <input hidden="hidden" name="ID" id="ID" class="form-control-sm" value="{{$value.ID}}" readonly>
                 <div class="d-flex justify-content-between align-items-center">
-                <h6 name="qty">Count:</h6>
-                <input id="count" class="form-control-sm" value="{{$value.Count}}">
+                  <h6>Change img:</h6>
+                    <input type="file" name="cimg" id="cimg">
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                <h6>Count:</h6>
+                <input name="qty" id="count" class="form-control-sm" value="{{$value.Count}}">
                 <h6>Name:</h6>
                 <input name="name"  id="name" class="form-control-sm" value="{{$value.Name}}">
               </div>
@@ -103,8 +108,8 @@
                   <h6>Price:</h6>
                   <input name="price" class="form-control-sm" value="{{$value.Price}}">
                 </div>
-              </form>
               </div>
+              </form>
             </div>
           </div>
           {{end}}
