@@ -137,3 +137,7 @@ func (h Handler) saveImage(file *multipart.FileHeader) (string, error) {
 
 	return fileName, nil
 }
+
+//func (h Handler) isAdmin(ctx context.Context,username string) (error, bool) {
+//	return
+//}

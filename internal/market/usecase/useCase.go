@@ -301,3 +301,8 @@ func (uc UseCase) RemoveItem(ctx context.Context, id string) error {
 func (uc UseCase) ChangeItem(ctx context.Context, item schema.Item) error {
 	return uc.storage.ChangeItem(ctx, item)
 }
+
+func (uc UseCase) IsAdmin(ctx context.Context, username string) (bool, error) {
+	// todo: map with adm usernames for quick response?
+	return uc.storage.IsAdmin(ctx, username)
+}

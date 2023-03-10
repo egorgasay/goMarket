@@ -44,3 +44,7 @@ type AccrualRequest struct {
 	Order string `json:"order"`
 	Goods []Item `json:"goods"`
 }
+
+type Admin struct {
+	Username string `bson:"username"`
+}

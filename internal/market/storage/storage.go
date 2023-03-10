@@ -220,3 +220,16 @@ func (s Storage) ChangeItem(ctx context.Context, item schema.Item) error {
 	_, err = c.ReplaceOne(ctx, filter, item)
 	return err
 }
+
+func (s Storage) IsAdmin(ctx context.Context, username string) (bool, error) {
+	c := s.db.Collection("admins")
+	filter := bson.D{primitive.E{Key: "username", Value: username}}
+
+	var admin schema.Admin
+	err := c.FindOne(ctx, filter).Decode(&admin)
+	if err != nil || admin.Username != username {
+		return false, err
+	}
+
+	return true, nil
+}

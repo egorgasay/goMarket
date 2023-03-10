@@ -23,6 +23,7 @@ type IStorage interface {
 	AddItem(ctx context.Context, item schema.Item) error
 	RemoveItem(ctx context.Context, id string) error
 	ChangeItem(ctx context.Context, item schema.Item) error
+	IsAdmin(ctx context.Context, username string) (bool, error)
 }
 
 type Storage struct {

@@ -271,15 +271,21 @@ func (h Handler) GetAdmin(c echo.Context) error {
 	user, login := store.Get(userkey)
 	if !login {
 		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		return nil
 	}
 
-	_, ok := user.(string)
+	username, ok := user.(string)
 	if !ok {
 		h.logger.Warn("Bad username")
 		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		return nil
 	}
 
-	// TODO: validate user
+	isAdmin, err := h.logic.IsAdmin(ctx, username)
+	if err != nil || !isAdmin {
+		c.Redirect(http.StatusTemporaryRedirect, "/")
+		return nil
+	}
 
 	items, err := h.getItems(ctx, c, "admin.html")
 	if err != nil {
@@ -304,11 +310,29 @@ func (h Handler) GetAdmin(c echo.Context) error {
 }
 
 func (h Handler) PostAddItem(c echo.Context) error {
-	// TODO: validate user
-
 	var ctx = context.TODO()
+	store := echosession.FromContext(c)
+	user, login := store.Get(userkey)
+	if !login {
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		return nil
+	}
+
+	username, ok := user.(string)
+	if !ok {
+		h.logger.Warn("Bad username")
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		return nil
+	}
+
+	isAdmin, err := h.logic.IsAdmin(ctx, username)
+	if err != nil || !isAdmin {
+		c.Redirect(http.StatusTemporaryRedirect, "/")
+		return nil
+	}
+
 	var item schema.Item
-	err := c.Bind(&item)
+	err = c.Bind(&item)
 	if err != nil {
 		h.logger.Warn(err.Error())
 	}
@@ -334,14 +358,33 @@ func (h Handler) PostAddItem(c echo.Context) error {
 }
 
 func (h Handler) RemoveItem(c echo.Context) error {
-	// TODO: validate user
-	id := c.Request().URL.Query().Get("id")
 	var ctx = context.TODO()
+	store := echosession.FromContext(c)
+	user, login := store.Get(userkey)
+	if !login {
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		return nil
+	}
+
+	username, ok := user.(string)
+	if !ok {
+		h.logger.Warn("Bad username")
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		return nil
+	}
+
+	isAdmin, err := h.logic.IsAdmin(ctx, username)
+	if err != nil || !isAdmin {
+		c.Redirect(http.StatusTemporaryRedirect, "/")
+		return nil
+	}
+
+	id := c.Request().URL.Query().Get("id")
 	if len(id) == 0 {
 		return h.handleAdminError(ctx, c, errors.New("empty id"))
 	}
 
-	err := h.logic.RemoveItem(ctx, id)
+	err = h.logic.RemoveItem(ctx, id)
 	if err != nil {
 		return h.handleAdminError(ctx, c, err)
 	}
@@ -352,13 +395,35 @@ func (h Handler) RemoveItem(c echo.Context) error {
 }
 
 func (h Handler) ChangeItem(c echo.Context) error {
-	// TODO: validate user
-	var ctx = context.Background()
+	var ctx = context.TODO()
+	store := echosession.FromContext(c)
+	user, login := store.Get(userkey)
+	if !login {
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		return nil
+	}
+
+	username, ok := user.(string)
+	if !ok {
+		h.logger.Warn("Bad username")
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		return nil
+	}
+
+	isAdmin, err := h.logic.IsAdmin(ctx, username)
+	if err != nil || !isAdmin {
+		c.Redirect(http.StatusTemporaryRedirect, "/")
+		return nil
+	}
+
+	ctx = context.Background()
 	var item schema.Item
-	err := c.Bind(&item)
+	err = c.Bind(&item)
 	if err != nil {
 		h.logger.Warn(err.Error())
 	}
+
+	// TODO: IF MULTIPART
 
 	file, err := c.FormFile("cimg")
 	if err == nil {
