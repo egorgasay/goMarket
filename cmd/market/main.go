@@ -66,6 +66,7 @@ func main() {
 	e.POST("/admin/add-item", h.PostAddItem)
 	e.GET("/admin/remove", h.RemoveItem)
 	e.POST("/admin/change", h.ChangeItem)
+	e.POST("/admin/change-status", h.PostChangeStatus)
 
 	e.Static("/static", "static")
 

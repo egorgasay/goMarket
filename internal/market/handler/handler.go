@@ -309,6 +309,38 @@ func (h Handler) GetAdmin(c echo.Context) error {
 	return nil
 }
 
+func (h Handler) PostChangeStatus(c echo.Context) error {
+	var ctx = context.TODO()
+	store := echosession.FromContext(c)
+	user, login := store.Get(userkey)
+	if !login {
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		return nil
+	}
+
+	username, ok := user.(string)
+	if !ok {
+		h.logger.Warn("Bad username")
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		return nil
+	}
+
+	isAdmin, err := h.logic.IsAdmin(ctx, username)
+	if err != nil || !isAdmin {
+		c.Redirect(http.StatusTemporaryRedirect, "/")
+		return nil
+	}
+
+	status := c.FormValue("status")
+	orderID := c.FormValue("orderID")
+	err = h.logic.ChangeOrderStatus(ctx, status, orderID)
+	if err != nil {
+		return h.handleAdminError(ctx, c, err)
+	}
+	c.Redirect(http.StatusTemporaryRedirect, "/admin")
+	return nil
+}
+
 func (h Handler) PostAddItem(c echo.Context) error {
 	var ctx = context.TODO()
 	store := echosession.FromContext(c)
@@ -422,8 +454,6 @@ func (h Handler) ChangeItem(c echo.Context) error {
 	if err != nil {
 		h.logger.Warn(err.Error())
 	}
-
-	// TODO: IF MULTIPART
 
 	file, err := c.FormFile("cimg")
 	if err == nil {

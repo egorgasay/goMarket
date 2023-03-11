@@ -233,3 +233,19 @@ func (s Storage) IsAdmin(ctx context.Context, username string) (bool, error) {
 
 	return true, nil
 }
+
+func (s Storage) ChangeOrderStatus(ctx context.Context, status, orderID string) error {
+	c := s.db.Collection("orders")
+	ID, err := primitive.ObjectIDFromHex(orderID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.D{primitive.E{Key: "_id", Value: ID}}
+	update := bson.D{primitive.E{Key: "$set", Value: bson.D{
+		primitive.E{Key: "status", Value: status},
+	}}}
+
+	_, err = c.UpdateOne(ctx, filter, update)
+	return err
+}

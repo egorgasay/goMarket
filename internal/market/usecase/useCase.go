@@ -306,3 +306,8 @@ func (uc UseCase) IsAdmin(ctx context.Context, username string) (bool, error) {
 	// todo: map with adm usernames for quick response?
 	return uc.storage.IsAdmin(ctx, username)
 }
+
+func (uc UseCase) ChangeOrderStatus(ctx context.Context, status, orderID string) error {
+
+	return uc.storage.ChangeOrderStatus(ctx, status, orderID)
+}

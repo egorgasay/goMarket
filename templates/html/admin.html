@@ -46,17 +46,28 @@
     </header>
     <ul>
       {{range $key, $order := .Orders }}
-      <form method="post">
+      <form method="post" action="/admin/change-status">
       {{range $ki, $item := $order.Items }}
       <li>
-          <div class="name"  style="font-size: 12px;font-family: Poppins;">{{$item.Name}}</div>
-          <div class="subject" style="font-size: 17px;text-decoration: none;font-family: Poppins;"> Count: {{$item.Count}} Price: {{$item.Price}}$ </div>
+          <div class="name"  style="color: #111111; font-size: 12px;font-family: Poppins;">{{$item.Name}}</div>
+          <div class="subject" style="color: #111111; font-size: 17px;text-decoration: none;font-family: Poppins;"> Count: {{$item.Count}} Price: {{$item.Price}}$ </div>
           <div class="time">{{ $order.Date }}</div>&nbsp;&nbsp;
       </li>
       {{ end }}
-        <input type="radio" name="verdict" value="{{$order.ID}} - ok" class="ok">
-        <input type="radio" name="verdict" value="{{$order.ID}} - bad" class="bad">
-        <button>Change status</button>
+        <input hidden="hidden" name="orderID" id="orderID" class="form-control-sm" value="{{$order.ID}}" readonly>
+        {{ if and (not (eq $order.Status "DELIVERED")) (not (eq $order.Status "CANCELED"))  }}
+        <select class="form-control-sm" name="status" >
+          <option value="" selected disabled hidden>{{$order.Status}}</option>
+          <option value="CREATED">CREATED</option>
+          <option value="CONFIRMED">CONFIRMED</option>
+          <option value="CANCELED">CANCELED</option>
+          <option value="ON THE WAY">ON THE WAY</option>
+          <option value="DELIVERED">DELIVERED</option>
+        </select>
+        <button type="submit" class="btn btn-primary">CHANGE STATUS</button>
+        {{ else }}
+        {{$order.Status}}
+        {{ end }}
       </form>
       {{ end }}
     </ul>
