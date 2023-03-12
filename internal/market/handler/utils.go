@@ -138,6 +138,14 @@ func (h Handler) saveImage(file *multipart.FileHeader) (string, error) {
 	return fileName, nil
 }
 
-//func (h Handler) isAdmin(ctx context.Context,username string) (error, bool) {
-//	return
-//}
+type Slices interface {
+	schema.Order | schema.Item
+}
+
+func reverseSlice[S Slices](sl []S) []S {
+	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
+		sl[i], sl[j] = sl[j], sl[i]
+	}
+
+	return sl
+}

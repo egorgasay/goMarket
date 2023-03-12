@@ -29,6 +29,15 @@ services:
     ports:
       - "8000:8080"
 
+  accrual:
+    image: ubuntu
+    volumes:
+      - .:/go/src/go-with-compose
+    working_dir: /go/src/go-with-compose
+    command: ./cmd/accrual/accrual_linux_amd64
+    ports:
+      - "8070:8080"
+
   market_db:
     image: mongo:4.2.8
     volumes:
@@ -38,8 +47,8 @@ services:
   loyalty_db:
     image: postgres:13.3
     environment:
-      POSTGRES_DB: "admin"
-      POSTGRES_USER: "admin"
-      POSTGRES_PASSWORD: "admin"
+      POSTGRES_DB: ${POSTGRES_DB:-admin}
+      POSTGRES_USER: ${POSTGRES_DB:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_DB:-admin}
     ports:
       - "5430:5432"

@@ -511,28 +511,28 @@ func (h Handler) ChangeItem(c echo.Context) error {
 	if err == nil {
 		item.ImagePath, err = h.saveImage(file)
 		if err != nil {
-			//h.handleAdminError(ctx, c, err)
-			h.logger.Warn(err.Error())
+			return h.handleAdminError(ctx, c, err)
 		}
 	}
 
 	err = h.logic.ChangeItem(ctx, item)
 	if err != nil {
-		//h.handleAdminError(ctx, c, err)
-		h.logger.Warn(err.Error())
+		return h.handleAdminError(ctx, c, err)
 	}
 
 	return c.HTML(http.StatusOK, "<p>File uploaded successfully</p><script>window.location.replace(\"/admin\");</script>")
 }
 
-type Slices interface {
-	schema.Order | schema.Item
-}
-
-func reverseSlice[S Slices](sl []S) []S {
-	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
-		sl[i], sl[j] = sl[j], sl[i]
+func (h Handler) LogoutHandler(c echo.Context) error {
+	store := echosession.FromContext(c)
+	store.Delete(userkey)
+	err := store.Save()
+	if err != nil {
+		h.logger.Warn("LogoutHandler:" + err.Error())
+		c.Redirect(http.StatusTemporaryRedirect, "/login")
+		return nil
 	}
 
-	return sl
+	c.Redirect(http.StatusTemporaryRedirect, "/login")
+	return nil
 }

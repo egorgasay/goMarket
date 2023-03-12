@@ -57,22 +57,12 @@ func main() {
 	}
 	e.Renderer = t
 
-	// TODO: MOVE TO ANOTHER PLACE
-	e.Any("/", h.GetMain)
-	e.Any("/login", h.Login)
-	e.Any("/reg", h.Register)
-	e.GET("/orders", h.GetOrders)
-	e.GET("/order", h.GetOrderInfo)
-
-	e.Any("/admin", h.GetAdmin)
-	e.POST("/admin/add-item", h.PostAddItem)
-	e.GET("/admin/remove", h.RemoveItem)
-	e.POST("/admin/change", h.ChangeItem)
-	e.POST("/admin/change-status", h.PostChangeStatus)
+	h.PublicRoutes(e)
+	h.PrivateRoutes(e)
 
 	e.Static("/static", "static")
 
-	// TODO: router.Use(gzip.Gzip(gzip.BestSpeed))
+	// TODO: e.Use(middleware.Compress(4, ))
 	go func() {
 		log.Info().Msg("Stating market: " + cfg.Host)
 		err := http.ListenAndServe(cfg.Host, e)
