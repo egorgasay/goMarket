@@ -58,10 +58,10 @@ ul {
   font-size: 22px;
 }
 #sidebar a.active {
-  background: brown;
+  background: #286090;
 }
 #sidebar a:hover {
-  background: brown;
+  background: #286090;
   transition: all 0.2s ease;
 }
 #sidebar .icon {
@@ -154,11 +154,11 @@ main ul li:hover > .name, main ul li:hover > .subject {
 }
 main ul li div {
   float: left;
-  color: brown;
+  color: cornflowerblue;
 }
 main ul li .name {
-  padding-left: 25px;
-  width: 200px;
+  padding-left: 10px;
+  width: 270px;
 }
 main ul li .time {
   float: right;
@@ -194,7 +194,7 @@ main ul li .time {
   width: 16px;
   height: 16px;
 
-  border: 2px solid red;
+  border: 2px solid lightskyblue;
   transition: 0.2s all linear;
   outline: none;
   margin-right: 5px;
@@ -214,6 +214,6 @@ button {
   border-radius: 0.35rem;
   cursor: pointer;
   font-weight: 600;
-  background: brown;
+  background: cornflowerblue;
   color: white;
 }

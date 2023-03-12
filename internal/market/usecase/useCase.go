@@ -268,7 +268,7 @@ func (uc UseCase) BulkBuy(ctx context.Context, cookie, username, accrualAddress,
 
 	order.Date = time.Now()
 	order.Owner = username
-	order.Status = "CREATED"
+	order.Status = schema.Status{Name: "CREATED", Code: 0}
 	go uc.addOrder(ctx, order)
 
 	if len(order.Items) != len(items) {
@@ -307,7 +307,20 @@ func (uc UseCase) IsAdmin(ctx context.Context, username string) (bool, error) {
 	return uc.storage.IsAdmin(ctx, username)
 }
 
-func (uc UseCase) ChangeOrderStatus(ctx context.Context, status, orderID string) error {
+func (uc UseCase) ChangeOrderStatus(ctx context.Context, statusCode int, orderID string) error {
+	var mapOfStatuses = map[int]string{
+		0:  "CREATED",
+		1:  "CONFIRMED",
+		2:  "ON THE WAY",
+		10: "DELIVERED",
+		99: "CANCELED",
+	}
 
+	var status = schema.Status{Name: mapOfStatuses[statusCode], Code: statusCode}
 	return uc.storage.ChangeOrderStatus(ctx, status, orderID)
+}
+
+// GetOrder NOW IS UNUSED
+func (uc UseCase) GetOrder(ctx context.Context, username, orderID string) (order schema.Order, err error) {
+	return uc.storage.GetOrder(ctx, username, orderID)
 }

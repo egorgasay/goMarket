@@ -26,7 +26,8 @@ type IUseCase interface {
 	RemoveItem(ctx context.Context, id string) error
 	ChangeItem(ctx context.Context, item schema.Item) error
 	IsAdmin(ctx context.Context, username string) (bool, error)
-	ChangeOrderStatus(ctx context.Context, status, orderID string) error
+	ChangeOrderStatus(ctx context.Context, statusCode int, orderID string) error
+	GetOrder(ctx context.Context, username string, id string) (order schema.Order, err error)
 }
 
 func New(storage storage.IStorage) UseCase {

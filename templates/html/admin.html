@@ -39,35 +39,41 @@
       <h1 style="color: red">{{.error}}</h1><br>
       {{end}}
       {{ if .Orders }}
-      <h1>You have unhandled orders!</h1><br>
+      <h1>Your orders: </h1><br>
       {{ else }}
-      <h1>You don't have unhandled orders :)</h1><br>
+      <h1>You don't have orders :(</h1><br>
       {{end}}
     </header>
     <ul>
       {{range $key, $order := .Orders }}
       <form method="post" action="/admin/change-status">
+
+        <div class="form-control" style="width: 20%;  margin-top: 2%">ORDER {{ $order.ID }}</div>
+        {{ if and (not (eq $order.Status.Name "DELIVERED")) (not (eq $order.Status.Name "CANCELED"))  }}
+        <select class="form-control-sm" name="status" >
+          <option value="" selected disabled hidden>{{$order.Status.Name}}</option>
+          <option value="0">CREATED</option>
+          <option value="1">CONFIRMED</option>
+          <option value="99">CANCELED</option>
+          <option value="2">ON THE WAY</option>
+          <option value="10">DELIVERED</option>
+        </select>
+        <button type="submit" class="btn btn-primary">CHANGE STATUS</button>
+        {{ else }}
+        {{ if eq $order.Status.Name "DELIVERED"}}
+        <div style="color: forestgreen">DELIVERED</div>
+        {{ else }}
+        <div style="color: red">CANCELED</div>
+        {{ end }}
+        {{ end }}
       {{range $ki, $item := $order.Items }}
       <li>
-          <div class="name"  style="color: #111111; font-size: 12px;font-family: Poppins;">{{$item.Name}}</div>
-          <div class="subject" style="color: #111111; font-size: 17px;text-decoration: none;font-family: Poppins;"> Count: {{$item.Count}} Price: {{$item.Price}}$ </div>
+          <div class="name"  style="color: #111111; font-size: 12px;font-family: Poppins;">ID: {{$item.ID}}</div>
+          <div class="subject" style="color: #111111; font-size: 17px;text-decoration: none;font-family: Poppins;">{{$item.Name}} Count: {{$item.Count}} Price: {{$item.Price}}$ </div>
           <div class="time">{{ $order.Date }}</div>&nbsp;&nbsp;
       </li>
       {{ end }}
         <input hidden="hidden" name="orderID" id="orderID" class="form-control-sm" value="{{$order.ID}}" readonly>
-        {{ if and (not (eq $order.Status "DELIVERED")) (not (eq $order.Status "CANCELED"))  }}
-        <select class="form-control-sm" name="status" >
-          <option value="" selected disabled hidden>{{$order.Status}}</option>
-          <option value="CREATED">CREATED</option>
-          <option value="CONFIRMED">CONFIRMED</option>
-          <option value="CANCELED">CANCELED</option>
-          <option value="ON THE WAY">ON THE WAY</option>
-          <option value="DELIVERED">DELIVERED</option>
-        </select>
-        <button type="submit" class="btn btn-primary">CHANGE STATUS</button>
-        {{ else }}
-        {{$order.Status}}
-        {{ end }}
       </form>
       {{ end }}
     </ul>

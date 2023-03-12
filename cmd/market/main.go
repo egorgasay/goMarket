@@ -62,6 +62,8 @@ func main() {
 	e.Any("/login", h.Login)
 	e.Any("/reg", h.Register)
 	e.GET("/orders", h.GetOrders)
+	e.GET("/order", h.GetOrderInfo)
+
 	e.Any("/admin", h.GetAdmin)
 	e.POST("/admin/add-item", h.PostAddItem)
 	e.GET("/admin/remove", h.RemoveItem)

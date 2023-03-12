@@ -31,7 +31,7 @@ type Order struct {
 	Owner  string    `bson:"owner"`
 	Items  []Item    `bson:"items"`
 	Date   time.Time `bson:"date"`
-	Status string    `bson:"status"`
+	Status Status    `bson:"status"`
 }
 
 type AuthRequestJSON schema.AuthRequestJSON
@@ -47,4 +47,9 @@ type AccrualRequest struct {
 
 type Admin struct {
 	Username string `bson:"username"`
+}
+
+type Status struct {
+	Name string `bson:"name"`
+	Code int    `bson:"code"`
 }

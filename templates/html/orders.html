@@ -5,41 +5,100 @@
   <title>GoMarket</title>
   <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css'>
 <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css'>
-  <link rel="stylesheet" href="/static/css/main_page.css">
+  <link rel="stylesheet" href="/static/css/order_info.css">
   <link rel="stylesheet" href="/static/css/nav.css">
 </head>
 <body>
 {{template "nav" .}}
-<!-- partial:index.partial.html -->
-<div class="clearfix"></div><br>
-<center>
-  {{if .error}}<center>{{.error}}</center>{{end}}
-<div class="items container" style="width:80%">
-  {{ range $key, $order := .Orders }}
-  <h6>Order ID: {{$order.ID}}</h6>
-  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3" >
-        {{ range $k, $value := $order.Items }}
-        <div class="col">
-          <div class="card shadow-sm">
-            <img src="{{$value.ImagePath}}" style="object-fit: scale-down;width: 600px;height: 600px;">
-            <div class="card-body">
-              <span class="text-muted fs-6">Count: {{$value.Count}}</span>
-              <h6>{{$value.Name}}</h6>
-              <p class="card-text">Status: {{$order.Status}}</p>
-              <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted ">${{$value.Price}}</small>
-              </div>
-            </div>
+<br><br><br>
+{{if .error}}
+<div class="order">
+      <p style="font-size: 20px; text-align: center;font-family:Georgia;">{{.error}}</p>
+</div>
+{{end}}
+{{ range $key, $order := .Orders }}
+<div class="order">
+  <section class="root">
+    <center>
+      <h6>Order ID: {{$order.ID}}</h6>
+    </center>
+    {{ range $key, $item := $order.Items }}
+    <figure>
+      <img src="{{$item.ImagePath}}" alt="">
+      <figcaption>
+        <h4>{{$item.Name}}</h4>
+        <h6>Count: {{$item.Count}}</h6>
+        <h2>${{$item.Price}}</h2>
+      </figcaption>
+    </figure>
+    <br>
+    {{end}}
+    {{ if eq $order.Status.Code 99 }}
+    <div class="order-track">
+      <div class="order-track-step">
+        <div class="order-track-status">
+          <span class="order-track-status-dot" style="background: red"></span>
+          <span class="order-track-status-line"></span>
+        </div>
+        <div class="order-track-text">
+          <p class="order-track-text-stat">The order was canceled. The money will be returned within 21 days.</p>
+          <!--        <span class="order-track-text-sub">21st November, 2019</span>-->
+        </div>
+      </div>
+      {{ else }}
+      <div class="order-track">
+        <div class="order-track-step">
+          <div class="order-track-status">
+            <span class="order-track-status-dot"></span>
+            <span class="order-track-status-line"></span>
+          </div>
+          <div class="order-track-text">
+            <p class="order-track-text-stat">Order Created</p>
+            <!--        <span class="order-track-text-sub">21st November, 2019</span>-->
           </div>
         </div>
+        {{ if gt $order.Status.Code 0 }}
+        <div class="order-track-step">
+          <div class="order-track-status">
+            <span class="order-track-status-dot"></span>
+            <span class="order-track-status-line"></span>
+          </div>
+          <div class="order-track-text">
+            <p class="order-track-text-stat">Order Confirmed</p>
+            <!--        <span class="order-track-text-sub">21st November, 2019</span>-->
+          </div>
+        </div>
+        {{ end }}
+        {{ if gt $order.Status.Code 1 }}
+        <div class="order-track-step">
+          <div class="order-track-status">
+            <span class="order-track-status-dot"></span>
+            <span class="order-track-status-line"></span>
+          </div>
+          <div class="order-track-text">
+            <p class="order-track-text-stat">ON THE WAY</p>
+            <!--        <span class="order-track-text-sub">21st November, 2019</span>-->
+          </div>
+        </div>
+        {{ end }}
+        {{ if ge $order.Status.Code 10 }}
+        <div class="order-track-step">
+          <div class="order-track-status">
+            <span class="order-track-status-dot"></span>
+            <span class="order-track-status-line"></span>
+          </div>
+          <div class="order-track-text">
+            <p class="order-track-text-stat">Order Deliverd</p>
+            <!--        <span class="order-track-text-sub">21st November, 2019</span>-->
+          </div>
+        </div>
+        {{ end }}
         {{end}}
       </div>
-  <br>
-  {{end}}
+    </div>
+  </section>
 </div>
-</center>
-<br>
-
+{{end}}
 <!-- partial -->
   <script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js'></script>
 <script  src="/static/js/main_page.js"></script>

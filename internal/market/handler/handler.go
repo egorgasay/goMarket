@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
 	echosession "github.com/go-session/echo-session"
 	"github.com/labstack/echo"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,6 +12,7 @@ import (
 	"gomarket/internal/market/schema"
 	"gomarket/internal/market/usecase"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -239,7 +239,7 @@ func (h Handler) GetOrders(c echo.Context) error {
 		h.logger.Warn(err.Error())
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			err = c.Render(http.StatusInternalServerError, "orders.html", H{
-				"error": "you don't have aby orders. go buy smth", "login": login,
+				"error": "you don't have any orders. go buy smth", "login": login,
 			})
 			if err != nil {
 				h.logger.Warn(err.Error())
@@ -262,6 +262,53 @@ func (h Handler) GetOrders(c echo.Context) error {
 	if err != nil {
 		h.logger.Warn(err.Error())
 	}
+	return nil
+}
+
+// GetOrderInfo NOW IS UNUSED
+func (h Handler) GetOrderInfo(c echo.Context) error {
+	ctx := context.TODO()
+	cookie, _ := c.Cookie("session")
+	if cookie == nil {
+		var err error
+		cookie, err = h.setCookie(ctx, c)
+		if err != nil {
+			return err
+		}
+	}
+
+	store := echosession.FromContext(c)
+	user, login := store.Get(userkey)
+	if !login {
+		user = cookie.Value
+	}
+
+	username, ok := user.(string)
+	if !ok {
+		return errors.New("bad username")
+	}
+
+	orderID := c.Request().URL.Query().Get("order")
+	if orderID == "" {
+		c.Redirect(http.StatusTemporaryRedirect, "/orders")
+		return nil
+	}
+
+	order, err := h.logic.GetOrder(ctx, username, orderID)
+	if err != nil {
+		h.logger.Warn(err.Error())
+		c.Redirect(http.StatusTemporaryRedirect, "/orders")
+		return nil
+	}
+
+	err = c.Render(http.StatusOK, "order_info.html", H{
+		"Order": order,
+	})
+
+	if err != nil {
+		h.logger.Warn(err.Error())
+	}
+
 	return nil
 }
 
@@ -332,8 +379,13 @@ func (h Handler) PostChangeStatus(c echo.Context) error {
 	}
 
 	status := c.FormValue("status")
+	statusCode, err := strconv.Atoi(status)
+	if err != nil {
+		statusCode = 0
+	}
+
 	orderID := c.FormValue("orderID")
-	err = h.logic.ChangeOrderStatus(ctx, status, orderID)
+	err = h.logic.ChangeOrderStatus(ctx, statusCode, orderID)
 	if err != nil {
 		return h.handleAdminError(ctx, c, err)
 	}
@@ -470,7 +522,7 @@ func (h Handler) ChangeItem(c echo.Context) error {
 		h.logger.Warn(err.Error())
 	}
 
-	return c.HTML(http.StatusOK, fmt.Sprintf("<p>File uploaded successfully</p><script>window.location.replace(\"/admin\");</script>"))
+	return c.HTML(http.StatusOK, "<p>File uploaded successfully</p><script>window.location.replace(\"/admin\");</script>")
 }
 
 type Slices interface {

@@ -234,7 +234,7 @@ func (s Storage) IsAdmin(ctx context.Context, username string) (bool, error) {
 	return true, nil
 }
 
-func (s Storage) ChangeOrderStatus(ctx context.Context, status, orderID string) error {
+func (s Storage) ChangeOrderStatus(ctx context.Context, status schema.Status, orderID string) error {
 	c := s.db.Collection("orders")
 	ID, err := primitive.ObjectIDFromHex(orderID)
 	if err != nil {
@@ -248,4 +248,16 @@ func (s Storage) ChangeOrderStatus(ctx context.Context, status, orderID string) 
 
 	_, err = c.UpdateOne(ctx, filter, update)
 	return err
+}
+
+// GetOrder NOW IS UNUSED
+func (s Storage) GetOrder(ctx context.Context, username, orderID string) (order schema.Order, err error) {
+	c := s.db.Collection("orders")
+	ID, err := primitive.ObjectIDFromHex(orderID)
+	if err != nil {
+		return schema.Order{}, err
+	}
+
+	filter := bson.D{primitive.E{Key: "owner", Value: username}, primitive.E{Key: "_id", Value: ID}}
+	return order, c.FindOne(ctx, filter).Decode(&order)
 }
