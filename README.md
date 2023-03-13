@@ -5,6 +5,11 @@
 ## Interaction scheme
 ![изображение](https://user-images.githubusercontent.com/102957432/224708312-e50c521b-4448-4008-a73f-0d02788cc5d2.png)
 
+## Launch 
+```bash
+docker-compose up -d
+```
+
 ### Loyalty Mechanics
 Flexible model of interaction with the loyalty system. In the example, 10% of each purchase of a product with the letter "B" in the product name is credited. You can change this behavior by adding new mechanics to the accrual service.
 
