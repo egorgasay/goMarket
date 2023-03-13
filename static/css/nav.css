@@ -1,0 +1,32 @@
+/*navigation stuff*/
+.nav{
+    margin-left: -3%;
+    display:block;
+    float:left;
+    /*background-color:#9E9E9E;*/
+    margin-top:16px;
+    text-align: center;
+    width: 100%;
+    /*list-style-type:none;*/
+}
+
+
+.nav a{
+    color:gray;
+    text-decoration:none;
+    font-family:Georgia;
+    font-size:18px;
+}
+
+.nav a:hover{
+    color:black;
+}
+
+.nav li{
+    padding:10px;
+    display:inline-block;
+}
+
+.nav .cart {
+    color:gray;
+}

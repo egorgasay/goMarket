@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Admin panel</title>
+  <link rel="stylesheet" href="/static/css/admin.css">
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.2/css/bootstrap.min.css'>
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css'>
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<aside id="sidebar">
+  <div class="logo">gomarket</div>
+  <menu>
+    <ul>
+      <li><a href="#page-1" id="messages-btn" class="menu-link active" style="text-decoration: none;">
+        <span class="icon fontawesome-envelope"></span>
+        Orders
+        <div class="menu-box-number">{{len (.Orders)}}</div>
+      </a></li>
+      <li><a id="invites-btn" class="menu-link" href="#page-2" style="text-decoration: none;">
+        <span class="icon entypo-paper-plane" ></span>
+        View</a></li>
+      <li><a id="events-btn" class="menu-link" href="#page-3" style="text-decoration: none;">
+        <span class="icon entypo-calendar"></span>
+        Add item</a></li>
+    </ul>
+  </menu>
+  <div class="profile">
+    <img src="http://placesheen.com/200/200" alt="Profile Picture" />
+    <p>gomarket</p>
+    <a href="/logout"><span class="icon entypo-cog"></span>Logout</a>
+  </div>
+</aside>
+<main>
+  <div id="page-1" class="content box-active">
+    <header>
+      {{ if .error }}
+      <h1 style="color: red">{{.error}}</h1><br>
+      {{end}}
+      {{ if .Orders }}
+      <h1>Your orders: </h1><br>
+      {{ else }}
+      <h1>You don't have orders :(</h1><br>
+      {{end}}
+    </header>
+    <ul>
+      {{range $key, $order := .Orders }}
+      <form method="post" action="/admin/change-status">
+
+        <div class="form-control" style="width: 20%;  margin-top: 2%">ORDER {{ $order.ID }}</div>
+        {{ if and (not (eq $order.Status.Name "DELIVERED")) (not (eq $order.Status.Name "CANCELED"))  }}
+        <select class="form-control-sm" name="status" >
+          <option value="" selected disabled hidden>{{$order.Status.Name}}</option>
+          <option value="0">CREATED</option>
+          <option value="1">CONFIRMED</option>
+          <option value="99">CANCELED</option>
+          <option value="2">ON THE WAY</option>
+          <option value="10">DELIVERED</option>
+        </select>
+        <button type="submit" class="btn btn-primary">CHANGE STATUS</button>
+        {{ else }}
+        {{ if eq $order.Status.Name "DELIVERED"}}
+        <div style="color: forestgreen">DELIVERED</div>
+        {{ else }}
+        <div style="color: red">CANCELED</div>
+        {{ end }}
+        {{ end }}
+      {{range $ki, $item := $order.Items }}
+      <li>
+          <div class="name"  style="color: #111111; font-size: 12px;font-family: Poppins;">ID: {{$item.ID}}</div>
+          <div class="subject" style="color: #111111; font-size: 17px;text-decoration: none;font-family: Poppins;">{{$item.Name}} Count: {{$item.Count}} Price: {{$item.Price}}$ </div>
+          <div class="time">{{ $order.Date }}</div>&nbsp;&nbsp;
+      </li>
+      {{ end }}
+        <input hidden="hidden" name="orderID" id="orderID" class="form-control-sm" value="{{$order.ID}}" readonly>
+      </form>
+      {{ end }}
+    </ul>
+  </div>
+  <div id="page-3" class="content">
+    <header>
+      <h2>Add an item</h2>
+      <div class="function-buttons"><span class="reply">Shop Name</span></div>
+    </header>
+    {{ template "add-item" }}
+  </div>
+  <div id="page-2" class="content">
+    <header>
+      <h2>Preview</h2>
+      <div class="function-buttons"><span class="reply">Shop - Shop Name</span></div>
+    </header>
+    <div class="clearfix"></div><br>
+    <center>
+      <div class="items container" style="width:80%">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3" >
+          {{ range $key, $value := .Items }}
+          <div class="col">
+            <div class="card shadow-sm">
+              <img src="{{$value.ImagePath}}">
+              <form method="post" action="/admin/change" enctype="multipart/form-data">
+              <div class="card-body">
+                <input hidden="hidden" name="img" id="img" class="form-control-sm" value="{{$value.ImagePath}}" readonly>
+                <input hidden="hidden" name="ID" id="ID" class="form-control-sm" value="{{$value.ID}}" readonly>
+                <div class="d-flex justify-content-between align-items-center">
+                  <h6>Change img:</h6>
+                    <input type="file" name="cimg" id="cimg">
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                <h6>Count:</h6>
+                <input name="qty" id="count" class="form-control-sm" value="{{$value.Count}}">
+                <h6>Name:</h6>
+                <input name="name"  id="name" class="form-control-sm" value="{{$value.Name}}">
+              </div>
+                <!--              <p class="card-text">This is a wider card with supporting</p>-->
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="btn-group">
+                    <button  type="button" onclick="location.href='/admin/remove?id={{$value.ID}}'" class="btn btn-sm btn-outline-secondary btn-danger text-white">Remove</button>
+
+                  </div>
+                  <div class="btn-group">
+                    <button type="submit"  class="btn btn-sm btn-outline-secondary btn-success text-white">Save</button>
+
+                  </div>
+                  <h6>Price:</h6>
+                  <input name="price" class="form-control-sm" value="{{$value.Price}}">
+                </div>
+              </div>
+              </form>
+            </div>
+          </div>
+          {{end}}
+        </div>
+      </div>
+    </center>
+    <br>
+    <br>
+  </div>
+
+  <!-- partial -->
+<!--  <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>-->
+  <script  src="/static/js/admin.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js'></script>
+  <script  src="/static/js/main_page.js"></script>
+</main>
+</body>
+</html>

@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"gomarket/internal/cookies"
+	"gomarket/internal/loyalty/cookies"
 	"net/http"
 )
 
@@ -17,7 +17,7 @@ func AuthRequired(next http.Handler) http.Handler {
 
 		if !cookies.Check(cookie) {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(fmt.Sprintf(`{"error": %s}`, err)))
+			w.Write([]byte(`{"error": "bad cookie"}`))
 			return
 		}
 
